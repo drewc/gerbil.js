@@ -1,0 +1,48 @@
+prelude: :gerbil/core
+package: gerbil/compiler
+namespace: gxc
+
+(%#begin (%#import
+          :gerbil/expander
+          :gerbil/compiler/base
+          :gerbil/compiler/compile
+          :gerbil/compiler/optimize-base
+          :gerbil/compiler/optimize-xform
+          :gerbil/compiler/optimize-top
+          :gerbil/compiler/optimize-ann
+          :gerbil/compiler/optimize-call
+          (spec:
+           (:gerbil/gambit/exceptions)
+           (0 display-exception 0 display-exception)))
+         (%#export #t)
+         (%#define-runtime optimizer-info-init! gxc#optimizer-info-init!)
+         (%#define-runtime optimize! gxc#optimize!)
+         (%#define-runtime
+          optimizer-load-ssxi-deps
+          gxc#optimizer-load-ssxi-deps)
+         (%#define-runtime optimizer-load-ssxi gxc#optimizer-load-ssxi)
+         (%#define-runtime optimizer-import-ssxi gxc#optimizer-import-ssxi)
+         (%#define-runtime optimize-source gxc#optimize-source)
+         (%#define-runtime &generate-ssxi gxc#&generate-ssxi)
+         (%#define-runtime apply-generate-ssxi gxc#apply-generate-ssxi)
+         (%#define-runtime
+          generate-ssxi-begin-syntax%
+          gxc#generate-ssxi-begin-syntax%)
+         (%#define-runtime generate-ssxi-module% gxc#generate-ssxi-module%)
+         (%#define-runtime
+          generate-ssxi-define-values%
+          gxc#generate-ssxi-define-values%)
+         (%#define-runtime generate-ssxi-call% gxc#generate-ssxi-call%)
+         (%#define-runtime !alias::typedecl gxc#!alias::typedecl)
+         (%#define-runtime !struct-type::typedecl gxc#!struct-type::typedecl)
+         (%#define-runtime !struct-pred::typedecl gxc#!struct-pred::typedecl)
+         (%#define-runtime !struct-cons::typedecl gxc#!struct-cons::typedecl)
+         (%#define-runtime !struct-getf::typedecl gxc#!struct-getf::typedecl)
+         (%#define-runtime !struct-setf::typedecl gxc#!struct-setf::typedecl)
+         (%#define-runtime !lambda::typedecl gxc#!lambda::typedecl)
+         (%#define-runtime !case-lambda::typedecl gxc#!case-lambda::typedecl)
+         (%#define-runtime !kw-lambda::typedecl gxc#!kw-lambda::typedecl)
+         (%#define-runtime
+          !kw-lambda-primary::typedecl
+          gxc#!kw-lambda-primary::typedecl))
+(%#call (%#ref _gx#load-module) (%#quote "gerbil/compiler/optimize__0"))

@@ -1,0 +1,6 @@
+prelude: :gerbil/core
+package: gerbil
+namespace: gxc
+
+(%#begin (%#import :gerbil/compiler/driver)
+         (%#export (import: :gerbil/compiler/driver)))

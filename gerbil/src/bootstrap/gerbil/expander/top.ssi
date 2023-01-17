@@ -1,0 +1,259 @@
+prelude: :gerbil/core
+package: gerbil/expander
+namespace: gx
+
+(%#begin (%#export #t)
+         (%#import
+          :gerbil/expander/common
+          :gerbil/expander/stx
+          :gerbil/expander/core)
+         (%#define-runtime core-expand-begin% gx#core-expand-begin%)
+         (%#define-runtime
+          core-expand-begin-syntax%
+          gx#core-expand-begin-syntax%)
+         (%#define-runtime
+          core-expand-begin-foreign%
+          gx#core-expand-begin-foreign%)
+         (%#define-runtime
+          core-expand-begin-module%
+          gx#core-expand-begin-module%)
+         (%#define-runtime
+          core-expand-begin-annotation%
+          gx#core-expand-begin-annotation%)
+         (%#define-runtime core-expand-local-block gx#core-expand-local-block)
+         (%#define-runtime core-expand-declare% gx#core-expand-declare%)
+         (%#define-runtime core-expand-extern% gx#core-expand-extern%)
+         (%#define-runtime
+          core-expand-define-values%
+          gx#core-expand-define-values%)
+         (%#define-runtime
+          core-expand-define-runtime%
+          gx#core-expand-define-runtime%)
+         (%#define-runtime
+          core-expand-define-syntax%
+          gx#core-expand-define-syntax%)
+         (%#define-runtime
+          core-expand-define-alias%
+          gx#core-expand-define-alias%)
+         (%#begin (%#define-runtime
+                   core-expand-lambda%__%
+                   gx#core-expand-lambda%__%)
+                  (%#begin (%#define-runtime
+                            core-expand-lambda%__0
+                            gx#core-expand-lambda%__0)
+                           (%#define-runtime
+                            core-expand-lambda%
+                            gx#core-expand-lambda%)))
+         (%#define-runtime
+          core-expand-case-lambda%
+          gx#core-expand-case-lambda%)
+         (%#define-runtime core-expand-let-values% gx#core-expand-let-values%)
+         (%#begin (%#define-runtime
+                   core-expand-letrec-values%__%
+                   gx#core-expand-letrec-values%__%)
+                  (%#begin (%#define-runtime
+                            core-expand-letrec-values%__0
+                            gx#core-expand-letrec-values%__0)
+                           (%#define-runtime
+                            core-expand-letrec-values%
+                            gx#core-expand-letrec-values%)))
+         (%#define-runtime
+          core-expand-letrec*-values%
+          gx#core-expand-letrec*-values%)
+         (%#define-runtime core-expand-let-bind? gx#core-expand-let-bind?)
+         (%#define-runtime
+          core-expand-let-bind-expression
+          gx#core-expand-let-bind-expression)
+         (%#define-runtime
+          core-expand-let-bind-values!
+          gx#core-expand-let-bind-values!)
+         (%#define-runtime
+          core-expand-let-bind-quote
+          gx#core-expand-let-bind-quote)
+         (%#define-runtime core-expand-let-syntax% gx#core-expand-let-syntax%)
+         (%#define-runtime
+          core-expand-letrec-syntax%
+          gx#core-expand-letrec-syntax%)
+         (%#define-runtime
+          core-expand-let-bind-syntax?
+          gx#core-expand-let-bind-syntax?)
+         (%#define-runtime
+          core-expand-let-bind-syntax-expression
+          gx#core-expand-let-bind-syntax-expression)
+         (%#begin (%#define-runtime
+                   core-expand-let-bind-syntax!__%
+                   gx#core-expand-let-bind-syntax!__%)
+                  (%#begin (%#define-runtime
+                            core-expand-let-bind-syntax!__0
+                            gx#core-expand-let-bind-syntax!__0)
+                           (%#define-runtime
+                            core-expand-let-bind-syntax!
+                            gx#core-expand-let-bind-syntax!)))
+         (%#define-runtime core-expand-expression% gx#core-expand-expression%)
+         (%#define-runtime core-expand-quote% gx#core-expand-quote%)
+         (%#define-runtime
+          core-expand-quote-syntax%
+          gx#core-expand-quote-syntax%)
+         (%#define-runtime core-expand-call% gx#core-expand-call%)
+         (%#define-runtime core-expand-if% gx#core-expand-if%)
+         (%#define-runtime core-expand-ref% gx#core-expand-ref%)
+         (%#define-runtime core-expand-setq% gx#core-expand-setq%)
+         (%#define-runtime macro-expand-extern gx#macro-expand-extern)
+         (%#define-runtime
+          macro-expand-define-values
+          gx#macro-expand-define-values)
+         (%#define-runtime
+          macro-expand-define-syntax
+          gx#macro-expand-define-syntax)
+         (%#define-runtime
+          macro-expand-define-alias
+          gx#macro-expand-define-alias)
+         (%#define-runtime macro-expand-lambda% gx#macro-expand-lambda%)
+         (%#define-runtime
+          macro-expand-case-lambda
+          gx#macro-expand-case-lambda)
+         (%#begin (%#define-runtime
+                   macro-expand-let-values__%
+                   gx#macro-expand-let-values__%)
+                  (%#begin (%#define-runtime
+                            macro-expand-let-values__0
+                            gx#macro-expand-let-values__0)
+                           (%#define-runtime
+                            macro-expand-let-values
+                            gx#macro-expand-let-values)))
+         (%#define-runtime
+          macro-expand-letrec-values
+          gx#macro-expand-letrec-values)
+         (%#define-runtime
+          macro-expand-letrec*-values
+          gx#macro-expand-letrec*-values)
+         (%#define-runtime macro-expand-if gx#macro-expand-if)
+         (%#define-runtime free-identifier=? gx#free-identifier=?)
+         (%#define-runtime bound-identifier=? gx#bound-identifier=?)
+         (%#define-runtime underscore? gx#underscore?)
+         (%#define-runtime ellipsis? gx#ellipsis?)
+         (%#define-runtime user-binding-identifier gx#user-binding-identifier)
+         (%#begin (%#define-runtime
+                   check-duplicate-identifiers__%
+                   gx#check-duplicate-identifiers__%)
+                  (%#begin (%#define-runtime
+                            check-duplicate-identifiers__0
+                            gx#check-duplicate-identifiers__0)
+                           (%#define-runtime
+                            check-duplicate-identifiers
+                            gx#check-duplicate-identifiers)))
+         (%#define-runtime core-bind-values? gx#core-bind-values?)
+         (%#begin (%#define-runtime
+                   core-bind-values!__%
+                   gx#core-bind-values!__%)
+                  (%#begin (%#define-runtime
+                            core-bind-values!__0
+                            gx#core-bind-values!__0)
+                           (%#define-runtime
+                            core-bind-values!__1
+                            gx#core-bind-values!__1)
+                           (%#define-runtime
+                            core-bind-values!__2
+                            gx#core-bind-values!__2)
+                           (%#define-runtime
+                            core-bind-values!
+                            gx#core-bind-values!)))
+         (%#define-runtime core-quote-bind-values gx#core-quote-bind-values)
+         (%#define-runtime core-runtime-ref? gx#core-runtime-ref?)
+         (%#define-runtime core-quote-runtime-ref gx#core-quote-runtime-ref)
+         (%#begin (%#define-runtime
+                   core-bind-runtime!__%
+                   gx#core-bind-runtime!__%)
+                  (%#begin (%#define-runtime
+                            core-bind-runtime!__0
+                            gx#core-bind-runtime!__0)
+                           (%#define-runtime
+                            core-bind-runtime!__1
+                            gx#core-bind-runtime!__1)
+                           (%#define-runtime
+                            core-bind-runtime!__2
+                            gx#core-bind-runtime!__2)
+                           (%#define-runtime
+                            core-bind-runtime!
+                            gx#core-bind-runtime!)))
+         (%#begin (%#define-runtime
+                   core-bind-runtime-reference!__%
+                   gx#core-bind-runtime-reference!__%)
+                  (%#begin (%#define-runtime
+                            core-bind-runtime-reference!__0
+                            gx#core-bind-runtime-reference!__0)
+                           (%#define-runtime
+                            core-bind-runtime-reference!__1
+                            gx#core-bind-runtime-reference!__1)
+                           (%#define-runtime
+                            core-bind-runtime-reference!__2
+                            gx#core-bind-runtime-reference!__2)
+                           (%#define-runtime
+                            core-bind-runtime-reference!
+                            gx#core-bind-runtime-reference!)))
+         (%#begin (%#define-runtime
+                   core-bind-extern!__%
+                   gx#core-bind-extern!__%)
+                  (%#begin (%#define-runtime
+                            core-bind-extern!__0
+                            gx#core-bind-extern!__0)
+                           (%#define-runtime
+                            core-bind-extern!__1
+                            gx#core-bind-extern!__1)
+                           (%#define-runtime
+                            core-bind-extern!__2
+                            gx#core-bind-extern!__2)
+                           (%#define-runtime
+                            core-bind-extern!
+                            gx#core-bind-extern!)))
+         (%#begin (%#define-runtime
+                   core-bind-syntax!__%
+                   gx#core-bind-syntax!__%)
+                  (%#begin (%#define-runtime
+                            core-bind-syntax!__0
+                            gx#core-bind-syntax!__0)
+                           (%#define-runtime
+                            core-bind-syntax!__1
+                            gx#core-bind-syntax!__1)
+                           (%#define-runtime
+                            core-bind-syntax!__2
+                            gx#core-bind-syntax!__2)
+                           (%#define-runtime
+                            core-bind-syntax!
+                            gx#core-bind-syntax!)))
+         (%#begin (%#define-runtime
+                   core-bind-root-syntax!__%
+                   gx#core-bind-root-syntax!__%)
+                  (%#begin (%#define-runtime
+                            core-bind-root-syntax!__0
+                            gx#core-bind-root-syntax!__0)
+                           (%#define-runtime
+                            core-bind-root-syntax!
+                            gx#core-bind-root-syntax!)))
+         (%#begin (%#define-runtime core-bind-alias!__% gx#core-bind-alias!__%)
+                  (%#begin (%#define-runtime
+                            core-bind-alias!__0
+                            gx#core-bind-alias!__0)
+                           (%#define-runtime
+                            core-bind-alias!__1
+                            gx#core-bind-alias!__1)
+                           (%#define-runtime
+                            core-bind-alias!__2
+                            gx#core-bind-alias!__2)
+                           (%#define-runtime
+                            core-bind-alias!
+                            gx#core-bind-alias!)))
+         (%#begin (%#define-runtime make-binding-id__% gx#make-binding-id__%)
+                  (%#begin (%#define-runtime
+                            make-binding-id__0
+                            gx#make-binding-id__0)
+                           (%#define-runtime
+                            make-binding-id__1
+                            gx#make-binding-id__1)
+                           (%#define-runtime
+                            make-binding-id__2
+                            gx#make-binding-id__2)
+                           (%#define-runtime
+                            make-binding-id
+                            gx#make-binding-id))))
+(%#call (%#ref _gx#load-module) (%#quote "gerbil/expander/top__0"))

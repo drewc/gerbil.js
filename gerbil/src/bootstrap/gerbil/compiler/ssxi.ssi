@@ -1,0 +1,37 @@
+prelude: :gerbil/core
+package: gerbil/compiler
+namespace: gxc
+
+(%#begin (%#import
+          :gerbil/compiler/base
+          :gerbil/compiler/optimize-base
+          :gerbil/core)
+         (%#export
+          #t
+          (spec: 0 ast-rules ast-rules)
+          (spec: 0 ast-case ast-case)
+          (spec: 0 syntax syntax)
+          (spec: 0 with-syntax with-syntax)
+          (spec: 0 with-syntax* with-syntax*)
+          (import: :gerbil/core))
+         (%#begin (%#begin-syntax
+                   (%#call (%#ref _gx#load-module)
+                           (%#quote "gerbil/compiler/ssxi__1")))
+                  (%#define-syntax declare-type |gxc[:0:]#declare-type|))
+         (%#define-syntax declare-type* |gxc[:0:]#declare-type*|)
+         (%#define-syntax declare-method |gxc[:0:]#declare-method|)
+         (%#define-syntax declare-method* |gxc[:0:]#declare-method*|)
+         (%#define-syntax declare-methods |gxc[:0:]#declare-methods|)
+         (%#define-syntax @alias |gxc[:0:]#@alias|)
+         (%#define-syntax @struct-type |gxc[:0:]#@struct-type|)
+         (%#define-syntax @make-struct-type |gxc[:0:]#@make-struct-type|)
+         (%#define-syntax @struct-pred |gxc[:0:]#@struct-pred|)
+         (%#define-syntax @struct-cons |gxc[:0:]#@struct-cons|)
+         (%#define-syntax @struct-getf |gxc[:0:]#@struct-getf|)
+         (%#define-syntax @struct-setf |gxc[:0:]#@struct-setf|)
+         (%#define-syntax @lambda |gxc[:0:]#@lambda|)
+         (%#define-syntax @case-lambda |gxc[:0:]#@case-lambda|)
+         (%#define-syntax @kw-lambda |gxc[:0:]#@kw-lambda|)
+         (%#define-syntax @kw-lambda-dispatch |gxc[:0:]#@kw-lambda-dispatch|)
+         (%#define-syntax declare-primitive |gxc[:0:]#declare-primitive|)
+         (%#define-syntax declare-primitive* |gxc[:0:]#declare-primitive*|))
