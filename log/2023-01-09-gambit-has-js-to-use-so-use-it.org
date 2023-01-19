@@ -1,0 +1,834 @@
+#+title: Gerbil.js? Gambit has JS so use it
+#+date: <2023-01-09 14:51>
+#+description: Gerbil uses Gambit, Gambit can use JS. We just need to connect them.
+#+filetags: gerbil gambit scheme javascript
+
+* Hypothesis
+
+*Gambit Scheme* has a wonderful *JavaScript* backend and runtime. We can use it to have the *Gerbil Meta-Scheme* running in the browser and in Node.js
+
+* Gambit
+
+We start with a simple one.
+
+#+begin_src sh
+    cd ~/me/MuKn/src/ ; git clone git@github.com:gambit/gambit.git
+    cd gambit
+    ./configure --prefix=$(pwd) --enable-single-host \
+                --enable-default-compile-options="(compactness 0)"
+    make clean
+    make -j8 core
+    make _gambit.js
+    gsc/gsc -:= -target js -exe -o gsi-js -prelude "(##include\"../lib/header.scm\")" gsi-js.scm
+
+    #$ ./gsi-js
+#+end_src
+
+That finally fails with [[Fail apply3][an error]] that's not my fault /per se/.
+
+  : ReferenceError: _appy3 is not defined
+
+<<Fix apply3>>
+
+#+begin_quote
+Drew Crampsie
+@drewc
+Jan 11 19:38
+I think I have everything up to date. Trying to load a compiled JS into a gsi-js and get this: ReferenceError: _apply3 is not defined.
+
+Marc Feeley
+@feeley
+04:25
+@drewc The Gambit compiler’s universal back-end has a smart static linker that will only link the low-level Gambit runtime routines (such as _make_vector, _apply2, _build_rest_from_stack, …) that are needed by the application being linked. In your case the application is gsi-js. Apparently none of the modules in gsi-js need _apply3 which is needed to implement calls to ##apply with 3 parameters, such as (##apply + 1 ‘(2 3 4 5)). On the other hand the compiled file that you are trying to load is calling ##apply with 3 parameters. There is currently no mechanism to dynamically define the runtime routines that are missing. I see a few options:
+1) add a dummy call to ##apply with 3 arguments to gsi-js
+2) rewrite the call to ##apply in your compiled file so it calls ##apply with 2 arguments
+3) use (declare (not extended-bindings ##apply)) so that the call to ##apply is not inlined
+4) add a command-line option to the gsc linker to force the inclusion of all the low-level Gambit runtime routines, even if they are not (immediately) needed by the linked program. You can get the list of all runtime routines like this:
+
+$ gsc
+Gambit v4.9.4-167-g517968e8
+
+> (list-sort (lambda (x y) (string<? (symbol->string (car x)) (symbol->string (car y)))) (table->list c#univ-rtlib-feature-table))
+((all_modules_registered . #(field #<procedure #2>))
+ (apply2 . #(field #<procedure #3>))
+ (apply3 . #(field #<procedure #4>))
+ (apply4 . #(field #<procedure #5>))
+ (apply5 . #(field #<procedure #6>))
+ (base92_decode . #(field #<procedure #7>))
+ (bignum_from_bigint . #(field #<procedure #8>))
+ (bignum_from_s32 . #(field #<procedure #9>))
+ (bignum_from_u32 . #(field #<procedure #10>))
+ (bignum_to_bigint . #(field #<procedure #11>))
+ (bignum_to_s32 . #(field #<procedure #12>))
+ (bignum_to_u32 . #(field #<procedure #13>))
+ (build_key . #(field #<procedure #14>))
+ (build_key_from_stack . #(field #<procedure #15>))
+ (build_key_rest . #(field #<procedure #16>))
+ (build_rest . #(field #<procedure #17>))
+ (build_rest_from_stack . #(field #<procedure #18>))
+ (call_start . #(field #<procedure #19>))
+ (check_heap_limit0 . #(field #<procedure #20>))
+ (cons . #(field #<procedure #21>))
+ (continuation_capture1 . #(field #<procedure #22>))
+ (continuation_capture2 . #(field #<procedure #23>))
+ (continuation_capture3 . #(field #<procedure #24>))
+ (continuation_capture4 . #(field #<procedure #25>))
+ (continuation_graft_no_winding2 . #(field #<procedure #26>))
+ (continuation_graft_no_winding3 . #(field #<procedure #27>))
+ (continuation_graft_no_winding4 . #(field #<procedure #28>))
+ (continuation_graft_no_winding5 . #(field #<procedure #29>))
+ (continuation_return_no_winding2 . #(field #<procedure #30>))
+ (ctrlpt_init . #(field #<procedure #31>))
+ (current_parententrypt . #(field #<procedure #32>))
+ (current_processor . #(field #<procedure #33>))
+ (current_vm . #(field #<procedure #34>))
+ (entrypt_init . #(field #<procedure #35>))
+ (flonumbox . #(field #<procedure #36>))
+ (flonump . #(field #<procedure #37>))
+ …
+
+Marc Feeley
+@feeley
+04:43
+5) the command-line argument is not really needed because the static linker can detect that ##os-load-object-file is being called by the linked program and in that case include all of the Gambit runtime routines (in case the program loads a compiled object file dynamically)… this would work if all dynamic module loading is done with ##os-load-object-file
+#+end_quote
+
+Ok, we'll do so like this.
+
+#+begin_src scheme
+(##include "./lib/header.scm")
+(##include "./gsi/_gsi.scm")
+
+(define (%dummy arg . args)
+  (##apply arg 1 args)
+  (##apply arg 1 2 args)
+  (##apply arg 1 2 3 args)
+  (##apply arg 1 2 3 4 args)
+  (##apply arg 1 2 3 4 5 args))
+
+#+end_src
+
+#+begin_src sh
+  cd ~/me/MuKn/src/
+  cd gambit
+  ./configure --prefix=$(pwd) --enable-single-host \
+              --enable-default-compile-options="(compactness 0)"
+  make clean
+  make -j8 core
+  make _gambit.js
+
+  gsc/gsc -:= -target js -exe -o gsi-js ./gsi-js.scm
+
+  #$ ./gsi-js
+#+end_src
+
+#+RESULTS:
+
+* Gerbil
+
+Gerbil is a meta-scheme that, like most lisps, is implemented in itself.
+
+#+begin_src sh
+  cd ~/me/MuKn/src/ ; git clone git@github.com:vyzo/gerbil.git
+  cd gerbil
+#+end_src
+
+But, as luck would have it, it's meta-enough that it comes with a bootstrap to build it in the language it transpiles to.
+
+The first thing it does it compile the =gxi= shim. So we'll do that.
+
+#+begin_src sh
+    MUKN_SRC=$HOME/me/MuKn/src
+    cd $MUKN_SRC/gerbil/src && ./build.sh gxi
+#+end_src
+
+The second thing it does it compile the runtime.
+
+#+begin_src sh
+compile_runtime () {
+  local target_lib="${1}"
+  (cd gerbil/runtime && ./build.scm "${target_lib}")
+}
+#+end_src
+
+We can pretty much ignore more of =runtime/build.scm= save for the arguments to the ~compiler~.
+
+#+begin_src scheme :noweb-ref runtime-build-main
+  (define (main libdir)
+  (displayln "building gerbil/runtime in " libdir)
+  (update-gx-version)
+  (parallel-build
+   ,*gx-modules*
+   (compiler `("-o" ,libdir
+               "-target" "js"
+          ;;     "-cc-options" "--param max-gcse-memory=300000000"
+          ;;     ,@(if (runtime-smp?)
+          ;;       '("-e" "(define-cond-expand-feature|enable-smp|)")
+          ;;       '())
+               "-e" "(include \"gx-gambc#.scm\")"))
+   false))
+#+end_src
+
+Then it builds the rest of the =.scm= files in =/bootstrap/=.
+
+#+begin_src scheme
+  ## gerbil bootstrap
+  feedback_mid "preparing bootstrap"
+  cp -R bootstrap/gerbil "${target_lib}"
+  find "${target_lib}" -name \*.scm > .build.stage0
+
+  feedback_mid "compiling gerbil core"
+  gsi "${GERBIL_BUILD}/build0.scm" || die
+#+end_src
+
+The =build0.scm= also calls ~compile~.
+
+#+begin_src scheme :tangle ~/me/MuKn/src/gerbil/src/build/build0.scm
+  (##namespace (""))
+
+  (load "gerbil/runtime/build-lib.scm")
+
+  (parallel-build
+   (call-with-input-file ".build.stage0" read-all-as-lines)
+   (compiler ;; '("-cc-options" "--param max-gcse-memory=300000000")
+    '("-target" "js"))
+   false)
+#+end_src
+
+So, what happens when we build it?
+
+#+begin_src sh
+        #+end_src
+
+It compiles everthing to an =.o1= file, but those files are text files AKA javascript!
+
+#+begin_src sh
+  MUKN_SRC=$HOME/me/MuKn/src
+  cd $MUKN_SRC/gerbil/bootstrap/lib/ && file gx-gambc.o1
+  # *=>* gx-gambc.o1: ASCII text, with very long lines (2660)
+#+end_src
+
+
+A quick look at gerbil's =gxi.c= shim tells me there's two env vars to set.
+
+#+begin_src c
+  char *gerbil_home = getenv("GERBIL_HOME");
+  char *gerbil_gsi = getenv("GERBIL_GSI");
+#+end_src
+
+#+begin_src sh :results verbatim :wrap example
+  MuKn_SRC=$HOME/me/MuKn/src
+  export GERBIL_HOME=$MuKn_SRC/gerbil/bootstrap
+  export GERBIL_GSI=$MuKn_SRC/gambit/gsi-js
+
+  MuKn_gxi=$MuKn_SRC/gerbil/bootstrap/bin/gxi
+
+  $MuKn_gxi -e '(display 42)'
+
+#+end_src
+
+That doesn't work.
+#+begin_example
+,*** ERROR IN make-struct-type -- Illegal super type; not a struct-type #<type #2 exception>
+>
+,*** EOF again to exit
+#+end_example
+
+But, that's not a bad thing as it does mean that we are using the JS Gambit interpreter and trying to load gerbil!
+
+So, let's see what happens and patch it!
+
+
+* Patches
+
+Here's where we patch things.
+
+** Structs are not vectors!
+
+#+begin_src sh :results verbatim :wrap example
+  MuKn_SRC=$HOME/me/MuKn/src
+  cd $MuKn_SRC; grep -ir 'Illegal super type' ./gerbil/*
+#+end_src
+
+=>
+#+begin_example
+./gerbil/src/gerbil/runtime/gx-gambc0.scm:    (error "Illegal super type; not a struct-type" super))
+#+end_example
+
+That shows me this:
+
+#+begin_src scheme
+   (when (and super (not (struct-type? super)))
+    (error "Illegal super type; not a struct-type" super))
+#+end_src
+
+Which leads me here.
+
+#+begin_src scheme
+(define (type-descriptor? klass)
+  (and (%%type? klass)
+       (eq? (%%vector-length klass) 12)))
+#+end_src
+
+Which happens to lead me towards a description of what Gerbil types are.
+
+#+begin_src text
+;;; MOP
+;;
+;; Gerbil rtd:
+;;  {##struct-t id super fields name plist ctor slots methods}
+;;  {##class-t  id super fields name plist ctor slots methods}
+;;
+;; Gambit structure rtd:
+;;  (define-type type
+;;    (id      unprintable: equality-test:)
+;;    (name    unprintable: equality-skip:)
+;;    (flags   unprintable: equality-skip:)
+;;    (super   unprintable: equality-skip:)
+;;    (fields  unprintable: equality-skip:))
+;;
+;; Gerbil rtd on gambit
+;; ##structure ##type-type
+;;  1  ##type-id
+;;  2  ##type-name
+;;  3  ##type-flags
+;;  4  ##type-super
+;;  5  ##type-fields
+;;  6                       type-descriptor-mixin
+;;  7                       type-descriptor-fields
+;;  8                       type-descriptor-plist
+;;  9                       type-descriptor-ctor
+;; 10                       type-descriptor-slots
+;; 11                       type-descriptor-methods
+#+end_src
+
+But, that says they are a structure. They are not vectors. They must be in the C backend otherwise this would not work.
+
+** Modify the ~%%vector-~ shims
+
+That leads us to gerbil's =src/gerbil/runtime/gx-gambc#.scm= which has the syntax used by some of the =gx-gambc*= files.
+
+So we'll modify all the ~%%vector-*~ shims.
+
+#+begin_src scheme
+
+;;; shims to ensure inlining of low level primitives
+(define-macro (%%vector-ref v pos)
+    `(let ((v ,v) (pos ,pos))
+       (declare (not safe))
+       (if (##vector? v)
+           (##vector-ref v pos)
+           (error "Attempting ##vector-ref on non-vector:" v))))
+(define-macro (%%vector-set! v pos val)
+  (let ((v ,v) (pos ,pos) (val ,val))
+    (declare (not safe))
+    (if (##vector? v)
+        (##vector-set! v pos val)
+        (error "Attempting ##vector-set! on non-vector:" v))))
+(define-macro (%%vector-length v)
+  `(let ((v ,v))
+     (declare (not safe))
+     (if (##vector? v)
+         (##vector-length v)
+         (error "Tried ##vector-length on a non-vector:" v))))
+#+end_src
+
+That gives us a tonne of things like
+  : *** ERROR IN gx-gambc0# -- Attempting ##vector-set! on non-vector: #<type #2 exception>
+
+Pretty simple actually. We go through and change things to struct.
+
+What does struct have?
+
+
+#+begin_src sh :results verbatim :wrap example
+  MuKn_SRC=$HOME/me/MuKn/src
+  export GERBIL_GSI=$MuKn_SRC/gambit/gsi-js
+  $GERBIL_GSI -e '(apropos "struct")'
+
+#+end_src
+=>
+#+begin_example
+"##" namespace:
+  deconstruct-call, define-type-construct-constant, direct-structure-cas!,
+  direct-structure-ref, direct-structure-set, direct-structure-set!,
+  explode-structure, implode-structure, make-structure, structure,
+  structure-cas!, structure-copy, structure-direct-instance-of?,
+  structure-display-exception-handler-register!,
+  structure-display-exception-handler-table-get, structure-indent-set!,
+  structure-instance-of?, structure-length, structure-max-field-set!,
+  structure-max-head-set!, structure-ref, structure-set, structure-set!,
+  structure-type, structure-type-set!, structure?, unchecked-structure-cas!,
+  unchecked-structure-ref, unchecked-structure-set!, wr-structure
+#+end_example
+
+Ok, let's do it!
+
+
+#+begin_src sh :results verbatim :wrap example
+  MuKn_SRC=$HOME/me/MuKn/src
+  grep -ir '##unchecked-structure-ref' $MuKn_SRC/gambit/lib
+#+end_src
+=>
+#+begin_example
+/home/drewc/me/MuKn/src/gambit/lib/_kernel.scm:(define-prim (##unchecked-structure-ref obj i type proc)
+#+end_example
+=>
+#+begin_src scheme
+  (define-prim (##unchecked-structure-ref obj i type proc))
+
+  (define-prim (##unchecked-structure-set! obj val i type proc))
+
+  (define-prim (##make-structure type len))
+#+end_src
+
+Ok, we just have to go for it.
+
+This:
+#+begin_src scheme
+(define (type-descriptor-methods-set! klass ht)
+  (%%vector-set! klass 11 ht))
+#+end_src
+
+... becomes as follows.
+
+#+begin_src scheme
+  (define (type-descriptor-methods-set! klass ht)
+    (%%unchecked-structure-set!
+     klass ht 11 ##type-type type-descriptor-methods-set!))
+#+end_src
+
+This is added to =gx-gambc#=.
+
+#+begin_src scheme
+(define-macro (%%make-structure . args)
+  `(let () (declare (not safe)) (##make-structure ,@args)))
+#+end_src
+
+Then this,
+
+#+begin_src scheme
+  (define (make-object klass k)
+  (let ((obj (%%make-vector (%%fx+ k 1) #f)))
+    (%%vector-set! obj 0 klass)
+    (%%subtype-set! obj (macro-subtype-structure))
+    obj))
+#+end_src
+
+... becomes this.
+
+#+begin_src scheme
+  (define (make-object klass k)
+    (let ((obj (%%make-structure (%%fx+ k 1) #f)))
+      (%%unchecked-structure-set! obj klass 0 ##type-type make-object)
+      obj))
+#+end_src
+
+After a bunch of changes I get on to the next file with a new error! YAY!!
+
+*** No ~apply3~
+
+<<Fail apply3>>
+#+begin_src sh :results verbatim :wrap example
+  MuKn_SRC=$HOME/me/MuKn/src
+  export GERBIL_HOME=$MuKn_SRC/gerbil/bootstrap
+  export GERBIL_GSI=$MuKn_SRC/gambit/gsi-js
+
+  MuKn_gxi=$MuKn_SRC/gerbil/bootstrap/bin/gxi
+
+  $MuKn_gxi -e '(display 42)' 2>&1 | cat
+
+#+end_src
+=>
+#+begin_example
+/home/drewc/me/MuKn/src/gerbil/bootstrap/lib/gx-gambc1.o1:965
+    return _apply3();
+    ^
+
+ReferenceError: _apply3 is not defined
+    at _bb56_gx_2d_gambc1_23_ (/home/drewc/me/MuKn/src/gerbil/bootstrap/lib/gx-gambc1.o1:965:5)
+    at _bb54_gx_2d_gambc1_23_ (/home/drewc/me/MuKn/src/gerbil/bootstrap/lib/gx-gambc1.o1:942:10)
+    at _trampoline (/home/drewc/me/MuKn/src/gambit/gsi-js:910:10)
+    at callback (/home/drewc/me/MuKn/src/gambit/gsi-js:11745:11)
+    at FSReqCallback.oncomplete (node:fs:197:23)
+
+Node.js v18.12.0
+#+end_example
+
+Let's try and [[Fix apply3][fix it]].
+
+It works!
+
+*** A lot more vectors
+
+#+begin_src sh :results verbatim :wrap example
+  MuKn_SRC=$HOME/me/MuKn/src
+  export GERBIL_HOME=$MuKn_SRC/gerbil/bootstrap
+  export GERBIL_GSI=$MuKn_SRC/gambit/gsi-js
+
+  PATH=$MuKn_SRC/gambit/gsc:$PATH/src
+  cd $MuKn_SRC/gerbil/src && ./build.sh stage0
+
+  MuKn_gxi=$MuKn_SRC/gerbil/bootstrap/bin/gxi
+
+  $MuKn_gxi -e '(display 42)' # 2>&1 | cat
+
+#+end_src
+
+#+RESULTS:
+#+begin_example
+#+end_example
+
+*=>*
+#+begin_example
+,*** ERROR IN gx#root-context:::init!__% -- struct-instance-init!: too many arguments for struct #<root-context #2>
+>
+,*** EOF again to exit
+#+end_example
+
+It turns out there are a lot more uses of vector functions for things that are not vectors in the JavaScript Gambit backend but are in the C backend. Sigh.
+
+
+
+
+
+* /File/ =gerbil/runtime/build.scm=
+
+#+begin_src scheme :tangle ~/me/MuKn/src/gerbil/src/gerbil/runtime/build.scm :noweb yes :shebang #!/usr/bin/env gsi-script
+
+  (##namespace (""))
+
+  (load "build-lib.scm")
+
+  (define *gx-modules*
+    (map (lambda (modf) (string-append modf ".scm"))
+         '("gx-gambc"
+           "gx-gambc0"
+           "gx-gambc1"
+           "gx-gambc2")))
+
+  (define (runtime-smp?)
+    (not (##vector-ref (thread-thread-group ##primordial-thread) 3)))
+
+  (define (update-gx-version)
+    (let* ((gx-version-path "gx-version.scm")
+           (git-version
+            (and (file-exists? "../../../.git")
+                 (with-exception-catcher
+                  (lambda (e) #f)
+                  (lambda ()
+                    (let* ((proc (open-process '(path: "git" arguments: ("describe" "--tags" "--always")
+                                                       show-console: #f)))
+                           (version (read-line proc))
+                           (status (process-status proc)))
+                      (close-port proc)
+                      (and (zero? status)
+                           (string? version) ;; (not (eof-object? version))
+                           version))))))
+           (gx-version-text
+            (and git-version
+                 (string-append "(define (gerbil-version-string) \"" git-version "\")\n")))
+           (previous-gx-version-text
+            (and gx-version-text ;; no need to compute it if no current version to replace it with
+                 (file-exists? gx-version-path)
+                 (call-with-input-file `(path: ,gx-version-path)
+                   (lambda (port) (read-line port #f))))))
+      (if (and gx-version-text (not (equal? gx-version-text previous-gx-version-text)))
+        (call-with-output-file `(path: ,gx-version-path create: maybe append: #f truncate: #t)
+          (lambda (port) (display gx-version-text port))))))
+
+  <<runtime-build-main>>
+#+end_src
+
+
+
+
+#+begin_src sh :results output code
+   cat ~/me/MuKn/src/gerbil/src/build.sh
+#+end_src
+*=>*
+
+#+begin_src sh :shebang #!/bin/sh
+set -eu
+cd $(dirname "$0") # Change to this directory
+
+#===============================================================================
+# Assuming this script is run with: `cd $GERBIL_BASE/src && ./build.sh`
+#===============================================================================
+
+## global constants
+readonly GERBIL_SOURCE="$(pwd -P)"
+readonly GERBIL_BASE="$(dirname "${GERBIL_SOURCE}")"
+readonly GERBIL_BUILD="${GERBIL_SOURCE}/build"
+readonly GERBIL_STAGE0="${GERBIL_BASE}/bootstrap"
+
+#===============================================================================
+## feedback
+feedback_err() {
+  (1>&2 echo "*** ERROR; ${1}")
+}
+
+feedback_low() {
+  echo "[*] ${1}"
+}
+
+feedback_mid() {
+  echo ">>> ${1}"
+}
+
+die() {
+  feedback_err "build failed"
+  exit 1
+}
+
+## sanity check
+sanity_check () {
+  GSIV="$(gsi -v)"
+  ## TODO: Get a buy-in from Marc Feeley on what good pattern would be there. Maybe a regexp via sed?
+  #case "$GSIV" in v[4-9].[0-9].[0-9]*" "20[2-9][0-9][0-1][0-9][0-3][0-9][0-2][0-9][0-5][0-9][0-9][0-9]" "*" \""*"\"") : ok ;;
+  #  *) echo >&2 "Is Gambit installed on your machine and in your PATH? Unrecognized version from gsi -v: $GSIV" ; return 1 ;;
+  #esac
+  GSCV="$(${GERBIL_GSC:-gsc} -v)"
+  [ "$GSIV" = "$GSCV" ] || { echo >&2 "gsi -v and ${GERBIL_GSC:-gsc} -v fail to report matching versions. Please define a proper GERBIL_GSC. Would gsc be called gambitc or gsc-script on your system not to clash with GhostScript?" ; return 1; }
+}
+
+## bootstrap
+target_setup () {
+  local target="${1}"
+  rm -rf "${target:?}/bin"  # warning: `:?` necessary for safety
+  rm -rf "${target:?}/lib"  # warning: `:?` necessary for safety
+  mkdir -p "${target}/bin"
+  mkdir -p "${target}/lib"
+}
+
+compile_gxi () {
+  feedback_low "Compiling gxi shim"
+  (cd gerbil && ${CC:-cc} -O2 -o gxi gxi.c)
+}
+
+compile_runtime () {
+  local target_lib="${1}"
+  (cd gerbil/runtime && ./build.scm "${target_lib}")
+}
+
+finalize_build () {
+  local target_lib="${1}"
+  local target_bin="${2}"
+  cp -v gerbil/boot/*.scm \
+        gerbil/interactive/*.ss \
+        "${target_lib}"
+  cp -v gerbil/gxi \
+        gerbil/gxc \
+        "${target_bin}"
+  (cd "${target_bin}" && ln -s gxi gxi-script)
+}
+
+stage0 () {
+  local target_bin="${GERBIL_STAGE0}/bin"
+  local target_lib="${GERBIL_STAGE0}/lib"
+
+  ## feedback
+  feedback_low "Building gerbil stage0"
+
+  ## preparing target directory
+  feedback_mid "preparing ${GERBIL_STAGE0}"
+  target_setup "${GERBIL_STAGE0}"
+
+  ## gerbil runtime
+  feedback_mid "compiling runtime"
+  compile_runtime "${target_lib}"
+
+  ## gerbil bootstrap
+  feedback_mid "preparing bootstrap"
+  cp -R bootstrap/gerbil "${target_lib}"
+  find "${target_lib}" -name \*.scm > .build.stage0
+
+  feedback_mid "compiling gerbil core"
+  gsi "${GERBIL_BUILD}/build0.scm" || die
+
+  ## cleaning up
+  rm -f .build.stage0
+
+  ## finalize build
+  feedback_mid "finalizing build"
+  finalize_build "${target_lib}" "${target_bin}"
+}
+
+stage1 () {
+  ## handling arguments
+  local final_string="[final]"
+  local final=""
+  [ "final" = "${1:-}" ] && final="1"
+
+  ## constants
+  local target_bin="${GERBIL_BASE}/bin"
+  local target_lib="${GERBIL_BASE}/lib"
+  local target_lib_gerbil="${GERBIL_BASE}/lib/gerbil"
+  local target_lib_static="${GERBIL_BASE}/lib/static"
+
+  ## feedback
+  feedback_low "Building gerbil stage1 ${final:+${final_string}}"
+
+  ## preparing target directory
+  feedback_mid "preparing ${GERBIL_BASE}"
+  target_setup "${GERBIL_BASE}"
+  touch "${GERBIL_BASE}/bin/.keep"
+  touch "${GERBIL_BASE}/lib/.keep"
+
+  ## gerbil runtime
+  feedback_mid "compiling runtime"
+  compile_runtime "${target_lib}"
+
+  ## stage1 build
+  feedback_mid "preparing core build"
+  mkdir -p "${target_lib_gerbil}"
+  cp -v gerbil/prelude/core.ssxi.ss "${target_lib_gerbil}"
+  mkdir -p "${target_lib_static}"
+  cp -v gerbil/runtime/gx-gambc*.scm \
+        gerbil/runtime/gx-version.scm \
+        "${target_lib_static}"
+
+  feedback_mid "compiling gerbil core"
+  GERBIL_HOME="${GERBIL_STAGE0}" # required by gxi
+  GERBIL_TARGET="${GERBIL_BASE}" # required by build1.ss
+  export GERBIL_HOME GERBIL_TARGET
+  "${GERBIL_STAGE0}/bin/gxi" "${GERBIL_BUILD}/build1.ss" || die
+
+  ## finalize build
+  feedback_mid "finalizing build ${final:+${final_string}}"
+  finalize_build "${target_lib}" "${target_bin}"
+
+  ## clean up stage0
+  if [ -n "${final}" ]; then
+    feedback_low "Cleaning up bootstrap"
+    rm -rf "${GERBIL_STAGE0}"
+    mkdir "${GERBIL_STAGE0}"
+    touch "${GERBIL_STAGE0}/.keep"
+  fi
+}
+
+## commands
+build_stdlib () {
+  feedback_low "Building gerbil stdlib"
+  PATH="${GERBIL_BASE}/bin:${PATH}"
+  GERBIL_HOME="${GERBIL_BASE}" #required by build.ss
+  GERBIL_GXC=gxc
+  export PATH GERBIL_HOME GERBIL_GXC
+  (cd std && ./build.ss)
+}
+
+build_lang () {
+  feedback_low "Building gerbil languages"
+  PATH="${GERBIL_BASE}/bin:${PATH}"
+  GERBIL_HOME="${GERBIL_BASE}" #required by build.ss
+  GERBIL_PATH="${GERBIL_HOME}" #required to build in the right place
+  export PATH GERBIL_HOME GERBIL_PATH
+  (cd lang && ./build.ss)
+}
+
+build_r7rs_large() {
+  feedback_low "Building R7RS large"
+  PATH="${GERBIL_BASE}/bin:${PATH}"
+  GERBIL_HOME="${GERBIL_BASE}" #required by build.ss
+  GERBIL_PATH="${GERBIL_HOME}" #required to build in the right place
+  export PATH GERBIL_HOME GERBIL_PATH
+  (cd r7rs-large && ./build.ss)
+}
+
+build_tools () {
+  feedback_low "Building gerbil tools"
+  PATH="${GERBIL_BASE}/bin:${PATH}"
+  GERBIL_HOME="${GERBIL_BASE}" #required by build.ss
+  export PATH GERBIL_HOME
+  (cd tools && ./build.ss)
+}
+
+build_tags () {
+  feedback_low "Build gerbil tags"
+  PATH="${GERBIL_BASE}/bin:${PATH}"
+  GERBIL_HOME="${GERBIL_BASE}" #required by gxtags
+  export PATH GERBIL_HOME
+  gxtags gerbil std lang
+}
+
+## reset build layout -- touch .keep files for scm
+build_layout () {
+  feedback_low "Resetting build layout structure"
+  mkdir -p "${GERBIL_STAGE0}"
+  touch "${GERBIL_STAGE0}/.keep"
+  touch "${GERBIL_BASE}/bin/.keep"
+  touch "${GERBIL_BASE}/lib/.keep"
+}
+
+build_doc () {
+  feedback_low "Build gerbil docs"
+  GERBIL_HOME="${GERBIL_BASE}" #required by gxtags
+  export GERBIL_HOME
+  (cd "${GERBIL_HOME}/doc" && npm install && node_modules/vuepress/cli.js dev)
+}
+
+#===============================================================================
+## main
+build_gerbil() {
+  feedback_low "Building Gerbil"
+  sanity_check     || die
+  compile_gxi      || die
+  stage0           || die
+  stage1 final     || die
+  build_stdlib     || die
+  build_lang       || die
+  build_r7rs_large || die
+  build_tools      || die
+  build_tags       || die
+}
+
+## handling command line
+if [ "$#" -eq 0 ]; then
+  build_gerbil
+else
+  case "$1" in
+       "sanity-check")
+         sanity_check || die
+         ;;
+       "gxi")
+         compile_gxi || die
+         ;;
+       "stage0")
+         stage0 || die
+         ;;
+       "stage1")
+         stage1 "${2:-}" || die
+         ;;
+       "stdlib")
+         build_stdlib || die
+         ;;
+       "lang")
+         build_lang || die
+         ;;
+       "r7rs-large")
+         build_r7rs_large || die
+         ;;
+       "tools")
+         build_tools || die
+         ;;
+       "tags")
+         build_tags || die
+         ;;
+       "layout")
+         build_layout || die
+         ;;
+       "doc")
+         build_doc || die
+         ;;
+       ,*)
+         feedback_err "Unknown command."
+         feedback_err \
+           "Correct usage: ./build.sh [gxi|stage0|stage1 [final]|stdlib|lang|r7rs-large|tools|tags]"
+         die
+         ;;
+  esac
+fi
+feedback_low "Done"
+#+end_src
+
+

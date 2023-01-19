@@ -1,0 +1,594 @@
+#+title: Replace Vector Prims
+#+date: <2023-01-17 15:00>
+#+description: A quick and hopefully temporary shim to treat other things as vectors.
+#+filetags:
+
+To make =stage0= for Gerbil work in JavaScript we will try and fudge the ##vector-* usage.
+
+* Gerbil Subtree
+
+Ideally almost all of this gets pushed back into Gerbil. For now we make a subtree.
+
+#+begin_src sh
+  git remote add gerbil git@github.com:drewc/gerbil.git
+  git fetch gerbil
+  git subtree add --prefix=gerbil gerbil master
+#+end_src
+
+* Gambit Submodulr
+
+We may require Gambit things/patches/etc. Gambit likes a git to build
+
+
+#+begin_src sh
+  git submodule add git@github.com:drewc/gambit.git
+  cd gambit
+  git remote add gambit git@github.com:gambit/gambit.git
+  git fetch gambit --tags
+  git push
+#+end_src
+
+** Build what's needed in Gambit
+
+#+begin_src sh
+  cd gambit
+  ./configure --prefix=$(pwd) --enable-single-host \
+              --enable-default-compile-options="(compactness 0)"
+  make clean
+  make -j8 core
+  make _gambit.js
+
+  gsc/gsc -:= -target js -exe -o bin/gsi-js -prelude "(##include\"../lib/header.scm\")" gsi/_gsi.js
+
+  #$ ./gsi-js
+#+end_src
+
+* Gerbil =stage0= bootstrap
+
+Gerbil, like almost all lisps, is developed in itself using itself. But the main scheme it transpiles towards is Gambit. Rather than require itself to build itself Gerbil uses a bootstrapped Gerbil runtime developed in Gambit kinda/sorta.
+
+In the upstream it currently uses =##vector-ref= and other vector friends where it actually wants a structure ref or a values ref. This is because they are the same for the C thingie. But not for the Universal thingie.
+
+We're going to create a =%%structor-ref=, along with a =_gx#structor-ref=, with their friends tagging along, and see how that goes.
+
+
+** The maybe-used syntax in =gx-gambc#=
+
+: ;;; shims to ensure inlining of low level primitives
+
+We hope that these are no longer used, but we've made them fudge a little.
+
+#+begin_src scheme :noweb-ref %%vectors
+(define-macro (%%vector-ref v pos)
+  `(let ((v ,v) (pos ,pos))
+     (declare (not safe))
+     (if (##vector? v)
+         (##vector-ref v pos)
+         (error "Attempting ##vector-ref on non-vector:" v))))
+(define-macro (%%vector-set! v pos val)
+  `(let ((v ,v) (pos ,pos) (val ,val))
+     (declare (not safe))
+     (if (##vector? v)
+         (##vector-set! v pos val)
+         (error "Attempting ##vector-set! on non-vector:" v))))
+(define-macro (%%vector-length v)
+  `(let ((v ,v))
+     (declare (not safe))
+     (if (##vector? v)
+         (##vector-length v)
+         (error "Tried ##vector-length on a non-vector:" v))))
+#+end_src
+
+Now, to "recreate": them with as little work as possible we'll create some new syntax based on our new type, =structor=.
+
+#+begin_src scheme :noweb-ref %%vectors
+  ;;; shims that pretend structs are vectors : structor
+  (define-macro (%%structor-ref obj i)
+    `(let ((obj ,obj))
+       (declare (not safe))
+       (if (##structure? obj)
+           (##unchecked-structure-ref obj ,i ##type-type #f)
+           (error "Tried %%structor-ref on non structure:" obj))))
+  ;;; Structures and vectors reverse /obj/ and /i/.
+  (define-macro (%%structor-set! obj i val)
+    `(let ((obj ,obj))
+       (declare (not safe))
+       (if (##structure? obj)
+           (##unchecked-structure-set! obj ,val ,i ##type-type #f)
+           (error "Tried %%structor-set! on non-structure: " obj))))
+  (define-macro (%%structor-length obj)
+    `(let ((obj ,obj)) (declare (not safe))
+          (if (##structure? obj)
+              (##structure-length obj)
+              (error "Tried %%structor-length on non-structure:" obj))))
+  ;;; / end structor
+#+end_src
+
+*** Change the library lookup path
+
+In testing this we discover the first issue that we already know about.
+
+#+begin_src sh
+  > export GERBIL_GSI=~/me/MuKn/src/gerbil.js/gambit/bin/gsi-js
+  > $GERBIL_GSI ./gx-gambc#.scm
+   ,*** ERROR IN "gx-gambc#.scm"@5.1 -- Can't open file "/usr/local/Gambit/lib/_gambit#.scm"
+#+end_src
+
+That's an interesting prefix as I thought we'd set it.
+
+#+begin_src sh :session stage0 :results verbatim :wrap src js
+  export GERBIL_GSI=~/me/MuKn/src/gerbil.js/gambit/bin/gsi-js
+
+  grep -i "/usr/local/Gambit" $GERBIL_GSI;
+#+end_src
+*=>*
+#+begin_src js
+return _host2scm('/usr/local/Gambit/');
+#+end_src
+
+Ok, that's not bad. Let's simply replace it with our gambit directory.
+
+#+begin_src sh :session stage0 :results verbatim :wrap src js
+  export JS_GAMBIT_HOME=~/me/MuKn/src/gerbil.js/gambit
+  SEDME="s|/usr/local/Gambit/|$JS_GAMBIT_HOME/|g"
+
+  sed -i $SEDME $GERBIL_GSI
+#+end_src
+
+Now?
+#+begin_src sh :session stage0 :results verbatim :wrap src js
+  grep -i $JS_GAMBIT_HOME $GERBIL_GSI
+#+end_src
+*=>*
+#+begin_src js
+return _host2scm('/home/drewc/me/MuKn/src/gerbil.js/gambit/');
+#+end_src
+
+
+And finally.
+
+#+begin_src sh :results verbatim :wrap example
+        export GERBIL_GSI=~/me/MuKn/src/gerbil.js/gambit/bin/gsi-js
+        export GERBIL_SRC=~/me/MuKn/src/gerbil.js/gerbil
+        $GERBIL_GSI -e "(begin
+          (include \"$GERBIL_SRC/src/gerbil/runtime/gx-gambc#.scm\")
+          (display (%%vector-ref (##vector \"Hey!\n\") 0))
+          (display (%%structor-ref (##structure \"You!\") 0)))"
+#+end_src
+*=>*
+#+begin_example
+Hey!
+You!
+#+end_example
+
+
+** The runtime! =gx-gambc0=
+
+In this file there are many uses of =%%vector-= macros.
+
+#+begin_src sh :results verbatim :wrap example
+  export GERBIL_GSI=~/me/MuKn/src/gerbil.js/gambit/bin/gsi-js
+  export GERBIL_SRC=~/me/MuKn/src/gerbil.js/gerbil
+
+  cd $GERBIL_SRC/src/gerbil/runtime
+  $GERBIL_GSI -e '(include "./gx-gambc#.scm")' ./gx-gambc0.scm
+#+end_src
+*=>*
+#+begin_example
+,*** ERROR IN gerbil-runtime-smp?, "gx-gambc0.scm"@34.8 -- Attempting ##vector-ref on non-vector: #<thread-group #2 primordial>
+>
+,*** EOF again to exit
+#+end_example
+
+
+We'll get rid of them.
+
+
+#+begin_src sh :results verbatim :wrap src js
+  export GERBIL_SRC=~/me/MuKn/src/gerbil.js/gerbil
+  export GX0=$GERBIL_SRC/src/gerbil/runtime/gx-gambc0.scm
+  SEDME="s|%%vector|%%structor|g"
+
+  echo "Sed'ing $GX0"
+  sed -i $SEDME $GX0
+#+end_src
+
+#+RESULTS:
+#+begin_src js
+Sed'ing /home/drewc/me/MuKn/src/gerbil.js/gerbil/src/gerbil/runtime/gx-gambc0.scm
+#+end_src
+
+Now?
+#+begin_src sh :results verbatim :wrap example
+  export GERBIL_GSI=~/me/MuKn/src/gerbil.js/gambit/bin/gsi-js
+  export GERBIL_SRC=~/me/MuKn/src/gerbil.js/gerbil
+
+  cd $GERBIL_SRC/src/gerbil/runtime
+  $GERBIL_GSI -e '(include "./gx-gambc#.scm")' ./gx-gambc0.scm\
+              -e '(displayln "Try out error? " (error? (##structure error::t)))'
+#+end_src
+
+#+RESULTS:
+#+begin_example
+Try out error? #t
+#+end_example
+
+
+* /File/ =gerbil/src/gerbil/runtime/gx-gambc#.scm=
+#+HEADER: :tangle ../gerbil/src/gerbil/runtime/gx-gambc#.scm
+#+begin_src scheme :noweb yes
+  ;;; -*- Scheme -*-
+  ;;; (C) vyzo at hackzen.org
+  ;;; Gerbil stage0 -- Gambit-C macros
+  (##namespace (""))
+  (include "~~lib/_gambit#.scm")
+
+  ;;; shims to ensure inlining of low level primitives
+  (define-macro (%%apply . args)
+    `(let () (declare (not safe)) (##apply ,@args)))
+  (define-macro (%%car . args)
+    `(let () (declare (not safe)) (##car ,@args)))
+  (define-macro (%%cdr . args)
+    `(let () (declare (not safe)) (##cdr ,@args)))
+  (define-macro (%%set-car! . args)
+    `(let () (declare (not safe)) (##set-car! ,@args)))
+  (define-macro (%%set-cdr! . args)
+    `(let () (declare (not safe)) (##set-cdr! ,@args)))
+  <<%%vectors>>
+  (define-macro (%%string-ref . args)
+    `(let () (declare (not safe)) (##string-ref ,@args)))
+  (define-macro (%%string-set! . args)
+    `(let () (declare (not safe)) (##string-set! ,@args)))
+  (define-macro (%%string-length . args)
+    `(let () (declare (not safe)) (##string-length ,@args)))
+  (define-macro (%%string-append . args)
+    `(let () (declare (not safe)) (##string-append ,@args)))
+  (define-macro (%%substring . args)
+    `(let () (declare (not safe)) (##substring ,@args)))
+  (define-macro (%%substring-move! . args)
+    `(let () (declare (not safe)) (##substring-move! ,@args)))
+  (define-macro (%%make-vector . args)
+    `(let () (declare (not safe)) (##make-vector ,@args)))
+  (define-macro (%%vector->list . args)
+    `(let () (declare (not safe)) (##vector->list ,@args)))
+  (define-macro (%%values? . args)
+    `(let () (declare (not safe)) (##values? ,@args)))
+  (define-macro (%%values-length . args)
+    `(let () (declare (not safe)) (##values-length ,@args)))
+  (define-macro (%%values-ref . args)
+    `(let () (declare (not safe)) (##values-ref ,@args)))
+  (define-macro (%%values->list . args)
+    `(let () (declare (not safe)) (##values->list ,@args)))
+  (define-macro (%%fx+ . args)
+    `(let () (declare (not safe)) (##fx+ ,@args)))
+  (define-macro (%%fx- . args)
+    `(let () (declare (not safe)) (##fx- ,@args)))
+  (define-macro (%%fx= . args)
+    `(let () (declare (not safe)) (##fx= ,@args)))
+  (define-macro (%%fx< . args)
+    `(let () (declare (not safe)) (##fx< ,@args)))
+  (define-macro (%%fx<= . args)
+    `(let () (declare (not safe)) (##fx<= ,@args)))
+  (define-macro (%%fx> . args)
+    `(let () (declare (not safe)) (##fx> ,@args)))
+  (define-macro (%%fx>= . args)
+    `(let () (declare (not safe)) (##fx>= ,@args)))
+  (define-macro (%%fxior . args)
+    `(let () (declare (not safe)) (##fxior ,@args)))
+  (define-macro (%%fxand . args)
+    `(let () (declare (not safe)) (##fxand ,@args)))
+  (define-macro (%%fxmodulo . args)
+    `(let () (declare (not safe)) (##fxmodulo ,@args)))
+  (define-macro (%%fxarithmetic-shift . args)
+    `(let () (declare (not safe)) (##fxarithmetic-shift ,@args)))
+  (define-macro (%%fxzero? . args)
+    `(let () (declare (not safe)) (##fxzero? ,@args)))
+  (define-macro (%%fxbit-set? . args)
+    `(let () (declare (not safe)) (##fxbit-set? ,@args)))
+  (define-macro (%%fl> . args)
+    `(let () (declare (not safe)) (##fl> ,@args)))
+  (define-macro (%%type . args)
+    `(let () (declare (not safe)) (##type ,@args)))
+  (define-macro (%%type? . args)
+    `(let () (declare (not safe)) (##type? ,@args)))
+  (define-macro (%%type-id . args)
+    `(let () (declare (not safe)) (##type-id ,@args)))
+  (define-macro (%%type-super . args)
+    `(let () (declare (not safe)) (##type-super ,@args)))
+  (define-macro (%%type-flags . args)
+    `(let () (declare (not safe)) (##type-flags ,@args)))
+  (define-macro (%%structure . args)
+    `(let () (declare (not safe)) (##structure ,@args)))
+  (define-macro (%%make-structure . args)
+    `(let () (declare (not safe)) (##make-structure ,@args)))
+  (define-macro (%%structure-length . args)
+    `(let () (declare (not safe)) (##structure-length ,@args)))
+  (define-macro (%%structure-instance-of? . args)
+    `(let () (declare (not safe)) (##structure-instance-of? ,@args)))
+  (define-macro (%%structure-direct-instance-of? . args)
+    `(let () (declare (not safe)) (##structure-direct-instance-of? ,@args)))
+  (define-macro (%%structure-ref . args)
+    `(let () (declare (not safe)) (##structure-ref ,@args)))
+  (define-macro (%%structure-set! . args)
+    `(let () (declare (not safe)) (##structure-set! ,@args)))
+  (define-macro (%%unchecked-structure-ref . args)
+    `(let () (declare (not safe)) (##unchecked-structure-ref ,@args)))
+  (define-macro (%%unchecked-structure-set! . args)
+    `(let () (declare (not safe)) (##unchecked-structure-set! ,@args)))
+  (define-macro (%%subtype-set! . args)
+    `(let () (declare (not safe)) (##subtype-set! ,@args)))
+
+  ;; conditional evaluation
+  (define-macro (eval-when expr . forms)
+    (if (eval expr)
+      `(begin ,@forms)
+      '(begin)))
+
+  (define-macro (eval-if test then else)
+    (if (eval test)
+      `(begin ,then)
+      `(begin ,else)))
+
+  (define-macro (eval-if-bound symbol then else)
+    (let ((bound?
+           (with-exception-catcher
+            (lambda (e) #f)
+            (lambda () (procedure? (eval symbol))))))
+      (if bound? then else)))
+
+  ;; when and unless
+  (define-macro (when condition . body)
+    `(if ,condition (begin ,@body) #!void))
+  (define-macro (unless condition . body)
+    `(if ,condition #!void (begin ,@body)))
+
+  ;; core-match; quite older code
+  (define-macro (core-match expr . cases)
+    (let (($e (gensym '$e)))
+      `(let ((,$e ,expr))
+         (core-match~ ,$e ,@cases))))
+
+  (define-macro (core-match~ tgt . cases)
+    (define recur
+      (lambda (tgt hd K E)
+        (cond
+         ((null? hd)
+          `(if (null? ,tgt) ,K ,E))
+         ((symbol? hd)
+          (if (or (eq? hd '_)
+                  (eq? hd 'else))
+            K
+            `(let ((,hd ,tgt)) ,K)))
+         ((or (number? hd)
+              (string? hd)
+              (char? hd)
+              (keyword? hd)
+              (boolean? hd)
+              (eq? hd #!void))
+          `(if (equal? ,tgt ,hd) ,K ,E))
+         ((quote? hd)
+          `(if (eq? ,tgt (quote ,(cadr hd)))
+             ,K ,E))
+         ((predicate? hd)
+          `(if (,(cadr hd) ,tgt) ,K ,E))
+         ((predicate-rec? hd)
+          `(if (,(cadr hd) ,tgt)
+             ,(recur tgt (caddr hd) K E)
+             ,E))
+         ((pair? hd)
+          (let* (($hd (gensym '$hd))
+                 ($tl (gensym '$tl))
+                 (K* (recur $tl (cdr hd) K E)))
+            `(if (pair? ,tgt)
+               (let* ((,$hd (%%car ,tgt))
+                      (,$tl (%%cdr ,tgt)))
+                 ,(recur $hd (car hd) K* E))
+               ,E)))
+         (else
+          (error "core-match: bad pattern" hd)))))
+
+    (define quote?
+      (lambda (hd)
+        (and (pair? hd)
+             (eq? (car hd) 'quote)
+             (pair? (cdr hd)))))
+
+    (define predicate?
+      (lambda (hd)
+        (and (list? hd)
+             (or (and (= (length hd) 2)
+                      (eq? (car hd) '?))
+                 (and (= (length hd) 3)
+                      (eq? (car hd) '?)
+                      (eq? (caddr hd) '_))))))
+
+    (define predicate-rec?
+      (lambda (hd)
+        (and (list? hd)
+             (= (length hd) 3)
+             (eq? (car hd) '?))))
+
+    (if (null? cases)
+      `(error "core-match: no clause matching" ,tgt)
+      (let* ((e    (car cases))
+             (hd   (car e))
+             (body (cdr e))
+             (rest (cdr cases))
+             (K    `(begin ,@body))
+             (E    `(core-match~ ,tgt ,@rest))
+             ($E   (gensym '$E)))
+        `(let ((,$E (lambda () ,E)))
+           ,(recur tgt hd K (list $E))))))
+
+  (define-macro (define-struct hd fields . opts)
+    (define (generate id super)
+      (let* ((pre  (symbol->string id))
+             (type (string->symbol (string-append pre "::t")))
+             (is?  (string->symbol (string-append pre "?")))
+             (make (string->symbol (string-append "make-" pre)))
+             (pref (map (lambda (field)
+                          (string-append pre "-" (symbol->string field)))
+                        fields))
+             (getf (map string->symbol pref))
+             (setf (map (lambda (pref)
+                          (string->symbol (string-append pref "-set!")))
+                        pref))
+             (off  (let lp ((rest fields) (n 0) (r '()))
+                     (core-match rest
+                       ((_ . rest)
+                        (lp rest (+ n 1) (cons n r)))
+                       (else
+                        (reverse r)))))
+             (tmp  (gensym))
+             (type-id
+              `(quote ,(or (getopt id:) (gensym id))))
+             (type-name
+              `(quote ,(or (getopt name:) id)))
+             (type-ctor
+              `(quote ,(or (getopt constructor:) #f)))
+             (type-len
+              (length fields)))
+        `(begin
+           (define ,type
+             (make-struct-type ,type-id ,super ,type-len
+                               ,type-name '() ,type-ctor))
+           (define ,is?
+             (make-struct-predicate ,type))
+           (define ,make
+             (lambda ,tmp
+               (apply make-struct-instance ,type ,tmp)))
+           ,@(map (lambda (getf off)
+                    `(define ,getf
+                       (make-struct-field-accessor ,type ,off)))
+                  getf off)
+           ,@(map (lambda (setf off)
+                    `(define ,setf
+                       (make-struct-field-mutator ,type ,off)))
+                  setf off))))
+
+    (define (getopt key)
+      (let lp ((rest opts))
+        (core-match rest
+          ((hd val . rest)
+           (if (eq? key hd) val
+               (lp rest)))
+          (else #f))))
+
+    (core-match hd
+      (((? symbol? id) super)
+       (generate id super))
+      ((? symbol? id)
+       (generate id #f))))
+
+  (define-macro (let-values hd . body)
+    (let recur ((rest hd))
+      (core-match rest
+        (((hd expr) . rest)
+         `(call-with-values (lambda () ,expr)
+            (lambda ,hd ,(recur rest))))
+        (else
+         `(let () ,@body)))))
+
+  ;; :<core> macros
+  (define-macro (define-core id impl bind!)
+    (let ((core-id (string->symbol (string-append "_gx#" (symbol->string id)))))
+      `(begin
+         (define ,core-id ,impl)
+         (,bind! ,core-id))))
+
+  (define-macro (define-core-macro hd . body)
+    (define (generate id args body bind!)
+      (let ((impl (gensym))
+            (stx (gensym)))
+         `(define-core ,id
+            (lambda ,args ,@body)
+            (lambda (,impl)
+              (,bind! (quote ,id)
+                      (lambda (,stx) (&AST (,impl ,stx) ,stx)))))))
+    (core-match hd
+      (special:
+       (core-match body
+         (((id . args) . body)
+          (generate id args body '&core-bind-special-form!))))
+      ((id . args)
+       (generate id args body '&core-bind-macro!))))
+
+  (define-macro (define-core-special-form hd . body)
+    `(define-core-macro special: ,hd ,@body))
+
+  (define-macro (define-core-syntax id expr)
+    `(&core-bind-syntax! (quote ,id) ,expr))
+
+  (define-macro (define-core-forms . body)
+    (define (generate id compile make)
+      (let ((eid (string->symbol
+                  (string-append "_gx#" (symbol->string compile)))))
+        `(&core-bind-syntax! (quote ,id) ,eid ,make)))
+
+    (let lp ((rest body) (rbody '()))
+      (core-match rest
+        (((id expr: compile) . rest)
+         (lp rest (cons (generate id compile 'make-&core-expression) rbody)))
+        (((id special: compile) . rest)
+         (lp rest (cons (generate id compile 'make-&core-special-form) rbody)))
+        (((id #f) . rest)
+         (lp rest (cons (generate id 'compile-error 'make-&core-form) rbody)))
+        (() (cons 'begin rbody)))))
+
+  (define-macro (core-ast-case expr . body)
+    (let (($e (gensym '$e)))
+      `(let ((,$e ,expr))
+         (core-ast-case~ ,$e ,@body))))
+
+  (define-macro (core-ast-case~ tgt kws . cases)
+    (define (generate1 hd tgt K E)
+      (core-match hd
+        ((hd . rest)
+         (let (($tgt (gensym '$tgt))
+               ($hd  (gensym '$hd))
+               ($tl  (gensym '$tl)))
+           `(if (&AST-pair? ,tgt)
+              (let* ((,$tgt (&AST-e ,tgt))
+                     (,$hd  (%%car  ,$tgt))
+                     (,$tl  (%%cdr  ,$tgt)))
+                ,(generate1 hd $hd (generate1 rest $tl K E) E))
+              ,E)))
+        ((? symbol? id)
+         (cond
+          ((eq? id '_) K)
+          ((memq id kws)
+           `(if (and (&AST-id? ,tgt)
+                     (eq? (&AST-e ,tgt) (quote ,id)))
+              ,K ,E))
+          (else
+           `(let ((,id ,tgt)) ,K))))
+        (else
+         (let ((is? (cond
+                     ((atom? hd)   'eq?)
+                     ((number? hd) 'eqv?)
+                     (else         'equal?))))
+           `(if (,is? (&AST-e ,tgt) (quote ,hd))
+              ,K ,E)))))
+
+    (define (atom? e)
+      (or (null? e)
+          (char? e)
+          (boolean? e)
+          (keyword? e)
+          (eq? e #!void)))
+
+    (let recur ((rest cases))
+      (core-match rest
+        ((hd . rest)
+         (let* (($E (gensym '$E))
+                (E `(,$E)))
+           `(let ((,$E (lambda () ,(recur rest))))
+              ,(core-match hd
+                 (('else . body)
+                  `(begin ,@body))
+                 ((pat expr)
+                  (generate1 pat tgt expr E))
+                 ((pat fender expr)
+                  (generate1 pat tgt `(if ,fender ,expr ,E) E))))))
+        (() `(_gx#raise-syntax-error #f "Bad syntax" ,tgt)))))
+#+end_src

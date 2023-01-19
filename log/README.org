@@ -1,0 +1,3 @@
+#+TITLE: The Gerbil.js (web) log
+
+This is a place to store my literate logs that help in development.
