@@ -416,14 +416,14 @@
                             _g4998449994_
                             'gx#module-export::t)
                            (let* ((_e4998950009_
-                                   (##vector-ref _g4998449994_ '1))
+                                   (_gx#vector-ref _g4998449994_ '1))
                                   (_e4999050012_
-                                   (##vector-ref _g4998449994_ '2))
+                                   (_gx#vector-ref _g4998449994_ '2))
                                   (_e4999150015_
-                                   (##vector-ref _g4998449994_ '3)))
+                                   (_gx#vector-ref _g4998449994_ '3)))
                              (if (##eq? _e4999150015_ '0)
                                  (let ((_e4999250018_
-                                        (##vector-ref _g4998449994_ '4)))
+                                        (_gx#vector-ref _g4998449994_ '4)))
                                    (if ((lambda (_g5002050022_)
                                           (eq? _g5002050022_ _id49979_))
                                         _e4999250018_)
@@ -1065,11 +1065,11 @@
         (let ((_g50287_ (gxc#generate-meta-code _ctx49645_)))
           (begin
             (let ((_g50288_
-                   (if (##values? _g50287_) (##vector-length _g50287_) 1)))
+                   (if (##values? _g50287_) (_gx#vector-length _g50287_) 1)))
               (if (not (##fx= _g50288_ 2))
                   (error "Context expects 2 values" _g50288_)))
-            (let ((_ssi-code49650_ (##vector-ref _g50287_ 0))
-                  (_phi-code49651_ (##vector-ref _g50287_ 1)))
+            (let ((_ssi-code49650_ (_gx#vector-ref _g50287_ 0))
+                  (_phi-code49651_ (_gx#vector-ref _g50287_ 1)))
               (begin
                 (_compile-ssi49647_ _ssi-code49650_)
                 (for-each _compile-phi49648_ _phi-code49651_))))))))

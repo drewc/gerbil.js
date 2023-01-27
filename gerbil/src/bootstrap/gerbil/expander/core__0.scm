@@ -208,11 +208,11 @@
       (apply make-struct-instance gx#local-context::t _$args9312_)))
   (define gx#phi-context:::init!__%
     (lambda (_self9296_ _id9297_ _super9298_)
-      (if (##fx< '3 (##vector-length _self9296_))
+      (if (##fx< '3 (_gx#vector-length _self9296_))
           (begin
-            (##vector-set! _self9296_ '1 _id9297_)
-            (##vector-set! _self9296_ '2 (make-table 'test: eq?))
-            (##vector-set! _self9296_ '3 _super9298_))
+            (_gx#vector-set! _self9296_ '1 _id9297_)
+            (_gx#vector-set! _self9296_ '2 (make-table 'test: eq?))
+            (_gx#vector-set! _self9296_ '3 _super9298_))
           (error '"struct-instance-init!: too many arguments for struct"
                  _self9296_))))
   (define gx#phi-context:::init!__0
@@ -231,11 +231,11 @@
   (bind-method! gx#phi-context::t ':init! gx#phi-context:::init! '#f)
   (define gx#local-context:::init!__%
     (lambda (_self9160_ _super9161_)
-      (if (##fx< '3 (##vector-length _self9160_))
+      (if (##fx< '3 (_gx#vector-length _self9160_))
           (begin
-            (##vector-set! _self9160_ '1 (gensym 'L))
-            (##vector-set! _self9160_ '2 (make-table 'test: eq?))
-            (##vector-set! _self9160_ '3 _super9161_))
+            (_gx#vector-set! _self9160_ '1 (gensym 'L))
+            (_gx#vector-set! _self9160_ '2 (make-table 'test: eq?))
+            (_gx#vector-set! _self9160_ '3 _super9161_))
           (error '"struct-instance-init!: too many arguments for struct"
                  _self9160_))))
   (define gx#local-context:::init!__0
@@ -1456,7 +1456,7 @@
               (lambda (_K8101_)
                 (gx#core-apply-expander__0 _K8101_ _stx8087_))))
         (if (##structure-instance-of? _self80888094_ 'gx#core-macro::t)
-            (let* ((_e80928106_ (##vector-ref _self80888094_ '1))
+            (let* ((_e80928106_ (_gx#vector-ref _self80888094_ '1))
                    (_K8109_ _e80928106_))
               (_K80918103_ _K8109_))
             (_E80908098_)))))
@@ -1476,7 +1476,7 @@
                   (lambda (_K7954_)
                     (gx#core-apply-expander__0 _K7954_ _stx7940_))))
             (if (##structure-instance-of? _self79417947_ 'gx#core-expander::t)
-                (let* ((_e79457959_ (##vector-ref _self79417947_ '1))
+                (let* ((_e79457959_ (_gx#vector-ref _self79417947_ '1))
                        (_K7962_ _e79457959_))
                   (_K79447956_ _K7962_))
                 (_E79437951_))))))
@@ -1556,7 +1556,7 @@
         (if (##structure-instance-of?
              _self75027508_
              'gx#rename-macro-expander::t)
-            (let* ((_e75067548_ (##vector-ref _self75027508_ '1))
+            (let* ((_e75067548_ (_gx#vector-ref _self75027508_ '1))
                    (_id7551_ _e75067548_))
               (_K75057545_ _id7551_))
             (_E75047512_)))))
@@ -1579,11 +1579,11 @@
                  _phi7344_
                  _method7328_))))
         (if (##structure-instance-of? _self73297337_ 'gx#macro-expander::t)
-            (let* ((_e73337351_ (##vector-ref _self73297337_ '1))
+            (let* ((_e73337351_ (_gx#vector-ref _self73297337_ '1))
                    (_K7354_ _e73337351_)
-                   (_e73347356_ (##vector-ref _self73297337_ '2))
+                   (_e73347356_ (_gx#vector-ref _self73297337_ '2))
                    (_ctx7359_ _e73347356_)
-                   (_e73357361_ (##vector-ref _self73297337_ '3))
+                   (_e73357361_ (_gx#vector-ref _self73297337_ '3))
                    (_phi7364_ _e73357361_))
               (_K73327348_ _phi7364_ _ctx7359_ _K7354_))
             (_E73317341_)))))
@@ -1832,6 +1832,8 @@
                               (error '"No clause matching" _hd70457051_)))
                            (_K70487065_
                             (lambda (_subst7058_)
+                              (if (and _subst7058_  (not (table? _subst7058_ )))
+                                  (error "This is not a table: " _subst7058_) )
                               (let ((_$e7062_
                                      (let ((_key7060_
                                             (if _subst7058_
@@ -1863,7 +1865,7 @@
                       (if (##structure-instance-of?
                            _hd70457051_
                            'gx#expander-mark::t)
-                          (let* ((_e70497068_ (##vector-ref _hd70457051_ '1))
+                          (let* ((_e70497068_ (_gx#vector-ref _hd70457051_ '1))
                                  (_subst7071_ _e70497068_))
                             (_K70487065_ _subst7071_))
                           (_E70477055_))))))
@@ -1875,6 +1877,8 @@
                 (_else70267040_)))))))
   (define gx#core-bind!__%
     (lambda (_key6887_ _val6888_ _rebind?6889_ _phi6890_ _ctx6891_)
+
+      ;; (error "core bond" _key6887_ _val6888_ _rebind?6889_ _phi6890_ _ctx6891_)
       (letrec ((_update-binding6893_
                 (lambda (_xval6964_)
                   (if (or (_rebind?6889_ _ctx6891_ _xval6964_ _val6888_)
@@ -2002,6 +2006,8 @@
                                              _mark69196925_)))
                                    (_K69226939_
                                     (lambda (_subst6932_)
+                                      ;; (display "here")
+                                      ;; (newline)
                                       (if (not _subst6932_)
                                           (let ((_subst6934_
                                                  (make-table 'test: eq?)))
@@ -2014,11 +2020,11 @@
                                             (_gensubst6894_
                                              _subst6934_
                                              _id6918_))
-                                          (let ((_$e6936_
-                                                 (table-ref
-                                                  _subst6932_
-                                                  _id6918_
-                                                  '#f)))
+                                          (let ( (_$e6936_
+                                                  (table-ref
+                                                   _subst6932_
+                                                   _id6918_
+                                                   '#f)))
                                             (if _$e6936_
                                                 (values _$e6936_)
                                                 (_gensubst6894_
@@ -2028,7 +2034,7 @@
                                    _mark69196925_
                                    'gx#expander-mark::t)
                                   (let* ((_e69236942_
-                                          (##vector-ref _mark69196925_ '1))
+                                          (_gx#vector-ref _mark69196925_ '1))
                                          (_subst6945_ _e69236942_))
                                     (_K69226939_ _subst6945_))
                                   (_E69216929_))))))
@@ -2179,7 +2185,7 @@
         (let _K6774_ ((_ctx6776_ _ctx6766_) (_phi6777_ _phi6767_))
           (if (fxzero? _phi6777_)
               _ctx6776_
-              (if (fx> (##vector-length _ctx6776_) '3)
+              (if (fx> (_gx#vector-length _ctx6776_) '3)
                   (if (fxpositive? _phi6777_)
                       (let ((_$e6779_
                              (##unchecked-structure-ref
@@ -2216,6 +2222,8 @@
                   _ctx6776_))))))
   (define gx#core-context-get
     (lambda (_ctx6763_ _key6764_)
+
+      ;; (display "context-get" _ctx6763_)  (newline)
       (table-ref
        (##unchecked-structure-ref _ctx6763_ '2 gx#expander-context::t '#f)
        _key6764_
@@ -2233,7 +2241,7 @@
           (if _$e6753_
               (values _$e6753_)
               (let ((_$e6756_
-                     (if (fx> (##vector-length _ctx6751_) '3)
+                     (if (fx> (_gx#vector-length _ctx6751_) '3)
                          (##unchecked-structure-ref
                           _ctx6751_
                           '3

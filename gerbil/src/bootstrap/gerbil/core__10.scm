@@ -629,11 +629,11 @@
                                                     _e2896629375_
                                                     '0)))
                                               (let ((_tl2896929382_
-                                                     (##vector-ref
+                                                     (_gx#vector-ref
                                                       ___splice3943439435_
                                                       '1))
                                                     (_target2896729379_
-                                                     (##vector-ref
+                                                     (_gx#vector-ref
                                                       ___splice3943439435_
                                                       '0)))
                                                 (if (gx#stx-null?
@@ -2237,7 +2237,7 @@
 ;;<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
                              '#f
                              '##fx=)
-                            (cons (cons (gx#datum->syntax '#f '##vector-length)
+                            (cons (cons (gx#datum->syntax '#f '_gx#vector-length)
                                         (cons _L25429_ '()))
                                   (cons _L26141_ '())))
                       (cons (_generate-simple-vector23788_
@@ -2643,15 +2643,15 @@
                                     (begin
                                       (let ((_g42156_
                                              (if (##values? _g42155_)
-                                                 (##vector-length _g42155_)
+                                                 (_gx#vector-length _g42155_)
                                                  1)))
                                         (if (not (##fx= _g42156_ 2))
                                             (error "Context expects 2 values"
                                                    _g42156_)))
                                       (let ((_target2479024811_
-                                             (##vector-ref _g42155_ 0))
+                                             (_gx#vector-ref _g42155_ 0))
                                             (_tl2479224814_
-                                             (##vector-ref _g42155_ 1)))
+                                             (_gx#vector-ref _g42155_ 1)))
                                         (if (gx#stx-null? _tl2479224814_)
                                             (letrec ((_loop2479324817_
                                                       (lambda (_hd2479124821_
@@ -2685,16 +2685,16 @@
                                            (begin
                                              (let ((_g42158_
                                                     (if (##values? _g42157_)
-                                                        (##vector-length
+                                                        (_gx#vector-length
                                                          _g42157_)
                                                         1)))
                                                (if (not (##fx= _g42158_ 2))
                                                    (error "Context expects 2 values"
                                                           _g42158_)))
                                              (let ((_target2486024881_
-                                                    (##vector-ref _g42157_ 0))
+                                                    (_gx#vector-ref _g42157_ 0))
                                                    (_tl2486224884_
-                                                    (##vector-ref _g42157_ 1)))
+                                                    (_gx#vector-ref _g42157_ 1)))
                                                (if (gx#stx-null?
                                                     _tl2486224884_)
                                                    (letrec ((_loop2486324887_
@@ -2730,7 +2730,7 @@
                                                     (let ((_g42160_
                                                            (if (##values?
                                                                 _g42159_)
-                                                               (##vector-length
+                                                               (_gx#vector-length
                                                                 _g42159_)
                                                                1)))
                                                       (if (not (##fx= _g42160_
@@ -2739,11 +2739,11 @@
                   (error "Context expects 2 values" _g42160_)))
 ;;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
                                                     (let ((_target2493124952_
-                                                           (##vector-ref
+                                                           (_gx#vector-ref
                                                             _g42159_
                                                             0))
                                                           (_tl2493324955_
-                                                           (##vector-ref
+                                                           (_gx#vector-ref
                                                             _g42159_
                                                             1)))
                                                       (if (gx#stx-null?
@@ -3108,7 +3108,7 @@
                                                             (cons (cons (gx#datum->syntax
 ;;<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
                                  '#f
-                                 '##vector-ref)
+                                 '_gx#vector-ref)
                                 (cons _L24752_ (cons _L24750_ '())))
                           '()))
               '())
@@ -3205,13 +3205,13 @@
                           'values->list)
                          (cons _L24563_ '()))
                    (if (eq? 'vector->list _$e24610_)
-                       (cons (gx#datum->syntax '#f '##vector->list)
+                       (cons (gx#datum->syntax '#f '_gx#vector->list)
                              (cons _L24563_ '()))
                        (if (eq? 'struct->list _$e24610_)
                            (cons (gx#datum->syntax '#f '##cdr)
                                  (cons (cons (gx#datum->syntax
                                               '#f
-                                              '##vector->list)
+                                              '_gx#vector->list)
                                              (cons _L24563_ '()))
                                        '()))
                            (gx#raise-syntax-error
@@ -3325,7 +3325,7 @@
                                         (cons _L24391_
                                               (cons (cons (gx#datum->syntax
                                                            '#f
-                                                           '##vector-length)
+                                                           '_gx#vector-length)
                                                           (cons _L24210_ '()))
                                                     '())))
                                   (cons _K24372_ (cons _E24177_ '()))))
@@ -3561,7 +3561,7 @@
                                                        (cons (cons (gx#datum->syntax
 ;;<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
                             '#f
-                            '##vector-ref)
+                            '_gx#vector-ref)
                            (cons _L24032_
                                  (cons (cons (gx#datum->syntax '#f 'fx1+)
                                              (cons _L24087_ '()))
@@ -3887,17 +3887,17 @@
                                                             (if (##values?
 ;;<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
                          _g42162_)
-                        (##vector-length _g42162_)
+                        (_gx#vector-length _g42162_)
                         1)))
                (if (not (##fx= _g42163_ 2))
                    (error "Context expects 2 values" _g42163_)))
 ;;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
                                                      (let ((_target2341823439_
-                                                            (##vector-ref
+                                                            (_gx#vector-ref
                                                              _g42162_
                                                              0))
                                                            (_tl2342023442_
-                                                            (##vector-ref
+                                                            (_gx#vector-ref
                                                              _g42162_
                                                              1)))
                                                        (if (gx#stx-null?
@@ -4260,12 +4260,12 @@
                                                              (if (##values?
 ;;<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
                           _g42164_)
-                         (##vector-length _g42164_)
+                         (_gx#vector-length _g42164_)
                          1)))
                 (if (not (##fx= _g42165_ 2))
                     (error "Context expects 2 values" _g42165_)))
-              (let ((_target2270022741_ (##vector-ref _g42164_ 0))
-                    (_tl2270222744_ (##vector-ref _g42164_ 1)))
+              (let ((_target2270022741_ (_gx#vector-ref _g42164_ 0))
+                    (_tl2270222744_ (_gx#vector-ref _g42164_ 1)))
                 (if (gx#stx-null? _tl2270222744_)
                     (letrec ((_loop2270322747_
                               (lambda (_hd2270122751_ _var2270722754_)
@@ -4715,15 +4715,15 @@
                                         (begin
                                           (let ((_g42170_
                                                  (if (##values? _g42169_)
-                                                     (##vector-length _g42169_)
+                                                     (_gx#vector-length _g42169_)
                                                      1)))
                                             (if (not (##fx= _g42170_ 2))
                                                 (error "Context expects 2 values"
                                                        _g42170_)))
                                           (let ((_target3058430625_
-                                                 (##vector-ref _g42169_ 0))
+                                                 (_gx#vector-ref _g42169_ 0))
                                                 (_tl3058630628_
-                                                 (##vector-ref _g42169_ 1)))
+                                                 (_gx#vector-ref _g42169_ 1)))
                                             (if (gx#stx-null? _tl3058630628_)
                                                 (letrec ((_loop3058730631_
                                                           (lambda (_hd3058530635_
@@ -4757,7 +4757,7 @@
                                                    (let ((_g42172_
                                                           (if (##values?
                                                                _g42171_)
-                                                              (##vector-length
+                                                              (_gx#vector-length
                                                                _g42171_)
                                                               1)))
                                                      (if (not (##fx= _g42172_
@@ -4766,11 +4766,11 @@
                  (error "Context expects 2 values" _g42172_)))
 ;;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
                                                    (let ((_target3067830699_
-                                                          (##vector-ref
+                                                          (_gx#vector-ref
                                                            _g42171_
                                                            0))
                                                          (_tl3068030702_
-                                                          (##vector-ref
+                                                          (_gx#vector-ref
                                                            _g42171_
                                                            1)))
                                                      (if (gx#stx-null?
@@ -4966,11 +4966,11 @@
                                                     _tl3087330929_
                                                     '0)))
                                               (let ((_tl3089330989_
-                                                     (##vector-ref
+                                                     (_gx#vector-ref
                                                       ___splice4112441125_
                                                       '1))
                                                     (_target3089130986_
-                                                     (##vector-ref
+                                                     (_gx#vector-ref
                                                       ___splice4112441125_
                                                       '0)))
                                                 (if (gx#stx-null?
@@ -5008,9 +5008,9 @@
                           (let ((___splice4112241123_
                                  (gx#syntax-split-splice _hd3087230926_ '0)))
                             (let ((_tl3087630935_
-                                   (##vector-ref ___splice4112241123_ '1))
+                                   (_gx#vector-ref ___splice4112241123_ '1))
                                   (_target3087430932_
-                                   (##vector-ref ___splice4112241123_ '0)))
+                                   (_gx#vector-ref ___splice4112241123_ '0)))
                               (if (gx#stx-null? _tl3087630935_)
                                   (___match4120241203_
                                    _e3086830912_
@@ -5117,11 +5117,11 @@
                                               _tl3083031202_
                                               '0)))
                                         (let ((_tl3083331208_
-                                               (##vector-ref
+                                               (_gx#vector-ref
                                                 ___splice4111441115_
                                                 '1))
                                               (_target3083131205_
-                                               (##vector-ref
+                                               (_gx#vector-ref
                                                 ___splice4111441115_
                                                 '0)))
                                           (if (gx#stx-null? _tl3083331208_)
@@ -5142,11 +5142,11 @@
                                                           _hd3082931199_
                                                           '0)))
                                                     (let ((_tl3087630935_
-                                                           (##vector-ref
+                                                           (_gx#vector-ref
                                                             ___splice4112241123_
                                                             '1))
                                                           (_target3087430932_
-                                                           (##vector-ref
+                                                           (_gx#vector-ref
                                                             ___splice4112241123_
                                                             '0)))
                                                       (if (gx#stx-null?
@@ -5169,11 +5169,11 @@
                                                   _hd3082931199_
                                                   '0)))
                                             (let ((_tl3087630935_
-                                                   (##vector-ref
+                                                   (_gx#vector-ref
                                                     ___splice4112241123_
                                                     '1))
                                                   (_target3087430932_
-                                                   (##vector-ref
+                                                   (_gx#vector-ref
                                                     ___splice4112241123_
                                                     '0)))
                                               (if (gx#stx-null? _tl3087630935_)
@@ -5212,9 +5212,9 @@
 ;;<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
                          (gx#syntax-split-splice _tl3083031202_ '0)))
                     (let ((_tl3085831116_
-                           (##vector-ref ___splice4111841119_ '1))
+                           (_gx#vector-ref ___splice4111841119_ '1))
                           (_target3085631113_
-                           (##vector-ref ___splice4111841119_ '0)))
+                           (_gx#vector-ref ___splice4111841119_ '0)))
                       (if (gx#stx-null? _tl3085831116_)
                           (___match4118241183_
                            _e3082531185_
@@ -5238,9 +5238,9 @@
                                       _hd3082931199_
                                       '0)))
                                 (let ((_tl3087630935_
-                                       (##vector-ref ___splice4112241123_ '1))
+                                       (_gx#vector-ref ___splice4112241123_ '1))
                                       (_target3087430932_
-                                       (##vector-ref ___splice4112241123_ '0)))
+                                       (_gx#vector-ref ___splice4112241123_ '0)))
                                   (if (gx#stx-null? _tl3087630935_)
                                       (___match4120241203_
                                        _e3082531185_
@@ -5258,9 +5258,9 @@
                       (let ((___splice4112241123_
                              (gx#syntax-split-splice _hd3082931199_ '0)))
                         (let ((_tl3087630935_
-                               (##vector-ref ___splice4112241123_ '1))
+                               (_gx#vector-ref ___splice4112241123_ '1))
                               (_target3087430932_
-                               (##vector-ref ___splice4112241123_ '0)))
+                               (_gx#vector-ref ___splice4112241123_ '0)))
                           (if (gx#stx-null? _tl3087630935_)
                               (___match4120241203_
                                _e3082531185_
@@ -5278,9 +5278,9 @@
                   (let ((___splice4112241123_
                          (gx#syntax-split-splice _hd3082931199_ '0)))
                     (let ((_tl3087630935_
-                           (##vector-ref ___splice4112241123_ '1))
+                           (_gx#vector-ref ___splice4112241123_ '1))
                           (_target3087430932_
-                           (##vector-ref ___splice4112241123_ '0)))
+                           (_gx#vector-ref ___splice4112241123_ '0)))
                       (if (gx#stx-null? _tl3087630935_)
                           (___match4120241203_
                            _e3082531185_
@@ -5302,11 +5302,11 @@
                                                           _hd3082931199_
                                                           '0)))
                                                     (let ((_tl3087630935_
-                                                           (##vector-ref
+                                                           (_gx#vector-ref
                                                             ___splice4112241123_
                                                             '1))
                                                           (_target3087430932_
-                                                           (##vector-ref
+                                                           (_gx#vector-ref
                                                             ___splice4112241123_
                                                             '0)))
                                                       (if (gx#stx-null?
@@ -5329,11 +5329,11 @@
                                                   _hd3082931199_
                                                   '0)))
                                             (let ((_tl3087630935_
-                                                   (##vector-ref
+                                                   (_gx#vector-ref
                                                     ___splice4112241123_
                                                     '1))
                                                   (_target3087430932_
-                                                   (##vector-ref
+                                                   (_gx#vector-ref
                                                     ___splice4112241123_
                                                     '0)))
                                               (if (gx#stx-null? _tl3087630935_)
@@ -5489,9 +5489,9 @@
 ;;<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
                              (gx#syntax-split-splice _tl3128531432_ '0)))
                         (let ((_tl3129731468_
-                               (##vector-ref ___splice4121041211_ '1))
+                               (_gx#vector-ref ___splice4121041211_ '1))
                               (_target3129531465_
-                               (##vector-ref ___splice4121041211_ '0)))
+                               (_gx#vector-ref ___splice4121041211_ '0)))
                           (if (gx#stx-null? _tl3129731468_)
                               (___match4125641257_
                                _e3128031415_
@@ -5525,11 +5525,11 @@
                                                   _tl3128531432_
                                                   '0)))
                                             (let ((_tl3131331355_
-                                                   (##vector-ref
+                                                   (_gx#vector-ref
                                                     ___splice4121441215_
                                                     '1))
                                                   (_target3131131352_
-                                                   (##vector-ref
+                                                   (_gx#vector-ref
                                                     ___splice4121441215_
                                                     '0)))
                                               (if (gx#stx-null? _tl3131331355_)
@@ -5974,11 +5974,11 @@
                                                           _tl3156432258_
                                                           '0)))
                                                     (let ((_tl3156732264_
-                                                           (##vector-ref
+                                                           (_gx#vector-ref
                                                             ___splice4128641287_
                                                             '1))
                                                           (_target3156532261_
-                                                           (##vector-ref
+                                                           (_gx#vector-ref
                                                             ___splice4128641287_
                                                             '0)))
                                                       (if (gx#stx-null?
@@ -6179,11 +6179,11 @@
                                                               _tl3156432258_
                                                               '0)))
                                                         (let ((_tl3159132154_
-                                                               (##vector-ref
+                                                               (_gx#vector-ref
                                                                 ___splice4129041291_
                                                                 '1))
                                                               (_target3158932151_
-                                                               (##vector-ref
+                                                               (_gx#vector-ref
                                                                 ___splice4129041291_
                                                                 '0)))
                                                           (if (gx#stx-null?

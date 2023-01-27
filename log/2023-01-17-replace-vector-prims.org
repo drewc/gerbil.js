@@ -213,7 +213,1114 @@ Now?
 Try out error? #t
 #+end_example
 
+** =gx-gambc1=, gerbil ASTs and a primitive eval.
 
+In =gambc0= we defined a MOP and an object system along with a minimal scheme system with functions needed for the rest.
+
+Now we'll use it to define an AST. We just need to switch vectors to structs again.
+
+#+begin_src sh :results verbatim :wrap src diff
+  export GERBIL_SRC=~/me/MuKn/src/gerbil.js/gerbil
+  cd $GERBIL_SRC/src/gerbil/runtime
+  git diff 2d8c03 gx-gambc1.scm
+#+end_src
+*=>*
+#+begin_src diff
+diff --git a/gerbil/src/gerbil/runtime/gx-gambc1.scm b/gerbil/src/gerbil/runtime/gx-gambc1.scm
+index 95bd6215..dd569a4d 100644
+--- a/gerbil/src/gerbil/runtime/gx-gambc1.scm
++++ b/gerbil/src/gerbil/runtime/gx-gambc1.scm
+@@ -22,10 +22,10 @@
+   `(##structure-instance-of? ,e 'gerbil#AST::t))
+
+ (define-macro (%AST-e e)
+-  `(##vector-ref ,e 1))
++  `(##unchecked-structure-ref ,e 1 AST::t #f))
+
+ (define-macro (%AST-source e)
+-  `(##vector-ref ,e 2))
++  `(##unchecked-structure-ref ,e 2 AST::t #f))
+
+ (define (&AST e src-stx)
+   (let ((src (&AST-source src-stx)))
+@@ -162,9 +162,9 @@
+   id: _gx#&context::t)
+
+ (define-macro (%&context-super ctx)
+-  `(##vector-ref ,ctx 3))
++  `(##unchecked-structure-ref ,ctx 3 &context::t #f))
+ (define-macro (%&context-table ctx)
+-  `(##vector-ref ,ctx 4))
++  `(##unchecked-structure-ref ,ctx 4 &context::t #f))
+
+ (define-struct &runtime (id)
+   id: _gx#&runtime::t)
+@@ -204,12 +204,12 @@
+     (macro-readtable-write-extended-read-macros?-set! rt #t)
+     (_gx#readtable-bracket-keyword-set! rt '@list)
+     (_gx#readtable-brace-keyword-set! rt '@method)
+-    (eval-if (>= (##vector-length (current-readtable)) 42)
++    (eval-if (>= (##structure-length (current-readtable)) 42)
+       (##readtable-char-sharp-handler-set! rt #\! _gx#read-sharp-bang)
+       (void))
+     rt))
+
+-(eval-if (>= (##vector-length (current-readtable)) 42)
++(eval-if (>= (##structure-length (current-readtable)) 42)
+   (begin
+     (define (_gx#readtable-bracket-keyword-set! rt kw)
+       (macro-readtable-bracket-handler-set! rt kw))
+@@ -1333,7 +1333,9 @@
+            (recur rest (fx1+ n))
+            (let (($tgt (gensym 'tgt)))
+              (&AST
+-              `(let-values (((,$tgt) (##vector-ref ,tgt ,n)))
++              `(let-values
++                   (((,$tgt)
++                     (##unchecked-structure-ref ,tgt ,n ##type-type #f)))
+                  ,(generate1 hd $tgt (recur rest (fx1+ n)) E))
+               stx))))
+         (else K)))
+@@ -1342,7 +1344,7 @@
+            (len (length body)))
+       (&AST
+        `(if (and (struct-instance? ,type-id ,tgt)
+-                 (fx< ,len (##vector-length ,tgt)))
++                 (fx< ,len (##structure-length ,tgt)))
+           ,(recur body 1)
+           ,E)
+        stx)))
+#+end_src
+
+*** Primitive ~eval~
+
+Gerbil has, well:
+
+#+begin_quote
+ This is a primitive eval that can be used to bootstrap the Gerbil expander directly from source (without an expander bootstrap).  It was used in early Gerbil, and could be used again if you want to (painfully) bootstrap the expander from source again, perhaps for trust purposes.
+#+end_quote
+
+Because we are a few files before the expander bootstrap having a working Gerbil is not a bad idea.
+
+#+begin_src scheme :tangle test-gambc1.scm
+  (displayln "This is a test for gx-gambc1: The AST")
+  (define syns (read-syntax-from-file "./gx-version.scm"))
+  (display* "Have Syntax: " syns "which prints as\n\t")
+  (map _gx#pp-syntax syns)
+  (define (text-gvs) "0.17.0-666-hahaha")
+  (displayln "What is here? :" &context::t " and " _gx#eval)
+#+end_src
+
+*Gerbil* has =cond-expand gerbil-bootstrap-expander= so we need to define it. When we have that defined there is a ~_gx#eval~ that needs a compiler. We don't yet have that so onto =gx-gambc2=
+#+begin_src sh :results verbatim :wrap example
+      export GERBIL_GSI=~/me/MuKn/src/gerbil.js/gambit/bin/gsi-js
+      export GERBIL_SRC=~/me/MuKn/src/gerbil.js/gerbil
+
+
+      PRELUDE="(define-cond-expand-feature|gerbil-bootstrap-expander|)"
+
+      testfile=$(pwd)/test-gambc1.scm
+
+      cd $GERBIL_SRC/src/gerbil/runtime
+
+      $GERBIL_GSI -e $PRELUDE -e '(include "./gx-gambc#.scm")' \
+                  ./gx-gambc0.scm ./gx-gambc1.scm\
+                  $testfile
+#+end_src
+
+#+RESULTS:
+#+begin_example
+This is a test for gx-gambc1: The AST
+Have Syntax: (#<syntax #2>)which prints as
+(define (gerbil-version-string) "0.17.0-66-g605e6fd6")
+	What is here? :#<type #3 &context> and #<procedure #4 _gx#eval>
+#+end_example
+
+** =gx-gambc2=, the compiler
+
+
+#+begin_src scheme :tangle test-gambc2.scm
+  (displayln "This is a test for gx-gambc2: The compiler")
+  (define syns (read-syntax-from-file "./gx-version.scm"))
+  (display* "Have Syntax: " syns "which prints as\n\t")
+  (map _gx#pp-syntax syns)
+  (define (text-gvs) "0.17.0-666-hahaha")
+  (displayln "What is here? :" &context::t " and " _gx#eval
+             "\n\tand finally " _gx#compile "in)
+  (display (map _gx#compile syns))
+#+end_src
+#+begin_src sh :results verbatim :wrap example
+      export GERBIL_GSI=~/me/MuKn/src/gerbil.js/gambit/bin/gsi-js
+      export GERBIL_SRC=~/me/MuKn/src/gerbil.js/gerbil
+
+
+      PRELUDE="(define-cond-expand-feature|gerbil-bootstrap-expander|)"
+
+      testfile=$(pwd)/test-gambc2.scm
+
+      cd $GERBIL_SRC/src/gerbil/runtime
+
+      $GERBIL_GSI -e $PRELUDE -e '(include "./gx-gambc#.scm")' \
+                  ./gx-gambc0.scm ./gx-gambc1.scm ./gx-gambc2.scm \
+                  $testfile
+#+end_src
+
+#+RESULTS:
+#+begin_example
+This is a test for gx-gambc2: The compiler
+Have Syntax: (#<syntax #2>)which prints as
+(define (gerbil-version-string) "0.17.0-66-g605e6fd6")
+	What is here? :#<type #3 &context> and #<procedure #4 _gx#eval>
+	and finally #<procedure #5 _gx#compile>
+,*** ERROR IN map -- This object was raised: #<syntax-error #6>
+>
+,*** EOF again to exit
+#+end_example
+
+* =find ./bootstrap -name '*.scm'=, the boostraped expander/compiler
+
+In this case there's a sh1t3l0ad of =##vector-*= usage that, again, we do not want.
+
+Most of the time it's a struct, some of the time it's a ~values~, or at least that knowledge is from past lookie-loos, so for now we'll just make some of our own.
+
+We'll also put in on the top of gambc2 as ~(define-macro (%&syntax-e obj) ...)~ is suspicious.
+
+  1) =s/##vector-ref/_gx#vector-ref/g=
+     #+begin_src scheme :noweb-ref _gx#vector
+       (define (_gx#vector-ref svs n)
+         (if (##structure? svs)
+             (##unchecked-structure-ref svs n ##type-type _gx#vector-ref)
+             (if (##values? svs)
+                 (##values-ref svs n)
+                 (if (##vector? svs)
+                  (##vector-ref svs n)
+                  (error "Tried _gx#vector-ref on a non-vector/struct/values: " svs)))))
+     #+end_src
+
+  2) =s/##vector-set!/_gx#vector-set!/g=
+
+     #+begin_src scheme :noweb-ref _gx#vector
+       (define (_gx#vector-set! svs i value)
+         (if (##structure? svs)
+             (##unchecked-structure-set!
+              svs value i ##type-type _gx#vector-set!)
+             (if (##values? svs)
+                 (##values-set! svs i value)
+                 (if (##vector? svs)
+                  (##vector-set! svs i value)
+                  (error "Tried _gx#vector-set! on a non-vector/struct/values: " svs)))))
+     #+end_src
+
+  3) =s/##vector-length/_gx#vector-length/g=
+
+     #+begin_src scheme :noweb-ref _gx#vector
+       (define (_gx#vector-length svs)
+         (if (##structure? svs) (##structure-length svs)
+             (if (##values? svs) (##values-length svs)
+                 (if (##vector? svs) (##vector-length svs)
+                  (error "Tried _gx#vector-length on a non-vector/struct/values: " svs)))))
+     #+end_src
+
+  4) =s/##vector->list/_gx#vector->list/g=
+
+     #+begin_src scheme :noweb-ref _gx#vector
+       (define (_gx#vector->list svs)
+         (if (##vector? svs)
+             (##vector->list svs)
+             (if (##structure? svs)
+                 (let ((end (##structure-length svs)))
+                   (let sl ((n 0))
+                     (if (= n end) '()
+                         (cons (##unchecked-structure-ref
+                                svs n ##type-type _gx#vector->list)
+                               (sl (+ 1 n))))))
+                 (if (##values? svs) (##values->list svs)
+                     (error "Tried _gx#vector->list on a non-vector/struct/values: " svs)))))
+     #+end_src
+
+** test them
+
+
+#+begin_src scheme :tangle test-gx-vector.scm
+   (displayln "This is a test for _gx#vector-* things")
+   (define gxvec (##vector 1 2 42))
+   (define gxstruct (##structure ##type-type 1 2 42))
+   (define gxvals (##values 1 2 42))
+   (define gxlist (list 1 2 3))
+   (display*
+    "Vector: " gxvec " answer " (_gx#vector-ref gxvec 2)
+     " len " (_gx#vector-length gxvec))
+   (display* "\n\tSet " (_gx#vector-set! gxvec 2 3))
+   (display* "\n\t ->list equal to " gxlist "? "
+    (equal? (_gx#vector->list gxvec) gxlist))
+  (display*
+     "\n\nStruct: " gxstruct " answer " (_gx#vector-ref gxstruct 3)
+      " len " (_gx#vector-length gxstruct))
+  (display* "\n\tSet " (_gx#vector-set! gxstruct 3 3))
+   (display* "\n\t cdr ->list equal to " gxlist "? "
+    (equal? (cdr (_gx#vector->list gxstruct)) gxlist))
+  (display*
+   "\n\nValues: " gxvals " answer " (_gx#vector-ref gxvals 2)
+   " len " (_gx#vector-length gxvals))
+  (display* "\n\tSet " (_gx#vector-set! gxvals 2 3))
+  (display* "\n\t  ->list equal to " gxlist "? "
+   (equal? (_gx#vector->list gxvals) gxlist))
+
+  #+end_src
+
+
+  #+begin_src sh :results verbatim :wrap example
+    export GERBIL_GSI=~/me/MuKn/src/gerbil.js/gambit/bin/gsi-js
+    export GERBIL_SRC=~/me/MuKn/src/gerbil.js/gerbil
+
+
+    PRELUDE="(define-cond-expand-feature|gerbil-bootstrap-expander|)"
+
+    testfile=$(pwd)/test-gx-vector.scm
+
+    cd $GERBIL_SRC/src/gerbil/runtime
+
+    $GERBIL_GSI -e $PRELUDE -e '(include "./gx-gambc#.scm")' \
+                ./gx-gambc0.scm ./gx-gambc1.scm ./gx-gambc2.scm \
+                $testfile
+#+end_src
+#+begin_example
+This is a test for _gx#vector-* things
+Vector: #(1 2 42) answer 42 len 3
+	Set #(1 2 3)
+	 ->list equal to (1 2 3)? #t
+
+Struct: #<type #2 2> answer 42 len 4
+	Set #<type #2 2>
+	 cdr ->list equal to (1 2 3)? #t
+
+Values: #<unknown> answer 42 len 3
+	Set #<unknown>
+	  ->list equal to (1 2 3)? #t
+#+end_example
+
+** Sed the bootstrap
+
+#+begin_src sh :results verbatim :wrap example
+  export GERBIL_SRC=~/me/MuKn/src/gerbil.js/gerbil
+  StarSed() {
+      echo "s/##vector-$1/_gx#vector-$1/g"
+  }
+  cd $GERBIL_SRC/src/bootstrap/
+  find . -name "*.scm" -exec sed -i "$(StarSed ref)" {} \;
+  find . -name "*.scm" -exec sed -i "$(StarSed set!)" {} \;
+  find . -name "*.scm" -exec sed -i "$(StarSed length)" {} \;
+  find . -name "*.scm" -exec sed -i "$(StarSed '>list')" {} \;
+#+end_src
+
+#+RESULTS:
+#+begin_example
+#+end_example
+
+  #+begin_src sh :results verbatim :wrap example
+    export GERBIL_SRC=~/me/MuKn/src/gerbil.js/gerbil
+    export GERBIL_GSI=~/me/MuKn/src/gerbil.js/gambit/bin/gsi-js
+    cd $GERBIL_SRC/src/gerbil/runtime
+
+    PRELUDE="(define-cond-expand-feature|gerbil-bootstrap-expander|)"
+
+    testfile=$(pwd)/test-gx-vector.scm
+
+
+    $GERBIL_GSI -e $PRELUDE -e '(include "./gx-gambc#.scm")' \
+                ./gx-gambc0.scm ./gx-gambc1.scm ./gx-gambc2.scm \
+                $testfile
+#+end_src
+
+
+* Attempt a new build
+
+First the =runtime/build.scm= needs some work.
+
+#+begin_src scheme :noweb-ref runtime-build-main
+  (define (main libdir)
+  (displayln "building gerbil/runtime in " libdir)
+  (update-gx-version)
+  (parallel-build
+   ,*gx-modules*
+   (compiler `("-o" ,libdir
+               "-target" "js"
+          ;;     "-cc-options" "--param max-gcse-memory=300000000"
+          ;;     ,@(if (runtime-smp?)
+          ;;       '("-e" "(define-cond-expand-feature|enable-smp|)")
+          ;;       '())
+               "-e" "(include \"gx-gambc#.scm\")"))
+   false))
+#+end_src
+
+ Then the =build0.= Change to a javascript target.
+
+#+HEADER: :tangle ~/me/MuKn/src/gerbil.js/gerbil/src/build/build0.scm
+#+begin_src scheme
+    (##namespace (""))
+
+    (load "gerbil/runtime/build-lib.scm")
+
+    (parallel-build
+     (call-with-input-file ".build.stage0" read-all-as-lines)
+     (compiler ;; '("-cc-options" "--param max-gcse-memory=300000000")
+      '("-target" "js"))
+     false)
+#+end_src
+
+And build!
+
+  #+begin_src sh :results verbatim :wrap example
+        export GERBIL_GSI=~/me/MuKn/src/gerbil.js/gambit/bin/gsi-js
+        export GERBIL_GSC=~/me/MuKn/src/gerbil.js/gambit/gsc/gsc
+        export GERBIL_SRC=~/me/MuKn/src/gerbil.js/gerbil
+
+        cd $GERBIL_SRC/src/ && ./build.sh gxi
+        cd $GERBIL_SRC/src/ && ./build.sh stage0
+
+        export GERBIL_HOME=$GERBIL_SRC/bootstrap
+
+        exec 2>&1
+          $GERBIL_HOME/bin/gxi -e '(display* "The Answer to LTUAE is?" 42)' || echo foo
+#+end_src
+
+Test?
+  #+begin_src sh :results verbatim :wrap example
+    export GERBIL_GSI=~/me/MuKn/src/gerbil.js/gambit/bin/gsi-js
+    export GERBIL_SRC=~/me/MuKn/src/gerbil.js/gerbil
+    export GERBIL_HOME=$GERBIL_SRC/bootstrap
+
+    $GERBIL_HOME/bin/gxi -e '(display* "The Answer to LTUAE is?" 42)' 2>&1 || true
+
+
+
+
+#+end_src
+*=>*
+#+begin_example
+/home/drewc/me/MuKn/src/gerbil.js/gerbil/bootstrap/lib/gx-gambc1.o1:965
+    return _apply3();
+    ^
+
+ReferenceError: _apply3 is not defined
+    at _bb56_gx_2d_gambc1_23_ (/home/drewc/me/MuKn/src/gerbil.js/gerbil/bootstrap/lib/gx-gambc1.o1:965:5)
+    at _bb54_gx_2d_gambc1_23_ (/home/drewc/me/MuKn/src/gerbil.js/gerbil/bootstrap/lib/gx-gambc1.o1:942:10)
+    at _trampoline (/home/drewc/me/MuKn/src/gerbil.js/gambit/bin/gsi-js:910:10)
+    at callback (/home/drewc/me/MuKn/src/gerbil.js/gambit/bin/gsi-js:11745:11)
+    at FSReqCallback.oncomplete (node:fs:197:23)
+
+Node.js v18.12.0
+#+end_example
+
+That's good news as I know those promblems.
+
+* Our own =gsi-js=.
+#+HEADER: :tangle ../gerbil/src/gerbil/gsi-js.scm
+#+begin_src scheme
+(##include "~~lib/header.scm")
+(##include "~~gsi/_gsi.scm")
+
+(define (%dummy arg . args)
+  (##apply arg 1 args)
+  (##apply arg 1 2 args)
+  (##apply arg 1 2 3 args)
+  (##apply arg 1 2 3 4 args)
+  (##apply arg 1 2 3 4 5 args))
+#+end_src
+
+  #+begin_src sh :results verbatim :wrap example
+    export GAMBIT_SRC=~/me/MuKn/src/gerbil.js/gambit
+    export GERBIL_SRC=~/me/MuKn/src/gerbil.js/gerbil
+
+    cd $GERBIL_SRC/src/gerbil && \
+        $GAMBIT_SRC/gsc/gsc -target js -exe -o gsi-js ./gsi-js.scm
+#+end_src
+
+** Test it
+  #+begin_src sh :results verbatim :wrap example
+    export GERBIL_SRC=../gerbil
+    export GERBIL_GSI=$GERBIL_SRC/src/gerbil/gsi-js
+    export GERBIL_HOME=$GERBIL_SRC/bootstrap
+
+    $GERBIL_HOME/bin/gxi -e '(display* "The Answer to LTUAE is?" 42)' 2>&1 || true
+#+end_src
+
+*ERROR*
+
+#+begin_example
+,*** ERROR IN make-object -- Tried %%structor-set! on non-structure:  #(#f #f #f #f #f #f)
+>
+,*** EOF again to exit
+#+end_example
+
+
+Seen that before. This is the replacement.
+
+#+begin_src scheme
+  (define (make-object klass k)
+    (let ((obj (%%make-structure (%%fx+ k 1) #f)))
+      (%%unchecked-structure-set! obj klass 0 ##type-type make-object)
+      obj))
+#+end_src
+
+
+Now?
+
+  #+begin_src sh :results verbatim :wrap example
+        export GERBIL_GSC=~/me/MuKn/src/gerbil.js/gambit/gsc/gsc
+        export GERBIL_SRC=~/me/MuKn/src/gerbil.js/gerbil
+
+        cd $GERBIL_SRC/src/ && ./build.sh gxi
+        cd $GERBIL_SRC/src/ && ./build.sh stage0
+#+end_src
+
+Test it
+
+
+  #+begin_src sh :results verbatim :wrap example
+    export GERBIL_SRC=../gerbil
+    export GERBIL_GSI=$GERBIL_SRC/src/gerbil/gsi-js
+    export GERBIL_HOME=$GERBIL_SRC/bootstrap
+
+    $GERBIL_HOME/bin/gxi -e '(display* "The Answer to LTUAE is?" 42)' 2>&1 || true
+#+end_src
+*=> ERROR*
+#+begin_example
+,*** ERROR IN gx#root-context:::init!__% -- struct-instance-init!: too many arguments for struct #<root-context #2>
+>
+,*** EOF again to exit
+#+end_example
+
+And that's what I thought I'd fixed with all the _gx# shims. Fuck.
+#+begin_src sh :results verbatim :wrap example
+  find ../gerbil -name '*.scm' -exec grep -Hi 'def.* gx#root-context:::init!__%' {} \;
+#+end_src
+
+#+RESULTS:
+#+begin_example
+../gerbil/src/bootstrap/gerbil/expander/root__0.scm:  (define gx#root-context:::init!__%
+../gerbil/bootstrap/lib/gerbil/expander/root__0.scm:  (define gx#root-context:::init!__%
+#+end_example
+
+I get it! Finally tracked that down.
+
+#+begin_src scheme
+(define (make-object klass k) (%%make-structure klass (%%fx+ k 1)))
+#+end_src
+
+#+begin_src sh :results verbatim :wrap example
+        export GERBIL_GSC=~/me/MuKn/src/gerbil.js/gambit/gsc/gsc
+        export GERBIL_SRC=~/me/MuKn/src/gerbil.js/gerbil
+
+        cd $GERBIL_SRC/src/ && ./build.sh gxi
+        cd $GERBIL_SRC/src/ && ./build.sh stage0
+#+end_src
+Now?
+  #+begin_src sh :results verbatim :wrap example
+    export GERBIL_SRC=../gerbil
+    export GERBIL_GSI=$GERBIL_SRC/src/gerbil/gsi-js
+    export GERBIL_HOME=$GERBIL_SRC/bootstrap
+
+    $GERBIL_HOME/bin/gxi -e '(display* "The Answer to LTUAE is?" 42)' 2>&1 || true
+#+end_src
+
+#+RESULTS:
+#+begin_example
+,*** ERROR IN gx#core-bind!__% -- core bond 0
+>
+,*** EOF again to exit
+#+end_example
+
+*=> ERROR*
+#+begin_example
+,*** ERROR IN gx#core-bind!__% -- (Argument 1) Instance of #<type #2 table> expected
+(table-ref 'phi-context 'runtime-type-exhibitor-e #f)
+>
+,*** EOF again to exit
+#+end_example
+
+
+Well that's new! It seems to be an off by one error.
+
+
+#+begin_src sh :results verbatim :wrap example
+  find ../gerbil -name '*.scm' -exec grep -Hi 'def.* gx#core-bind!__%' {} \;
+#+end_src
+
+#+RESULTS:
+#+begin_example
+../gerbil/src/bootstrap/gerbil/expander/core__0.scm:  (define gx#core-bind!__%
+../gerbil/bootstrap/lib/gerbil/expander/core__0.scm:  (define gx#core-bind!__%
+#+end_example
+
+#+begin_src sh :results verbatim :wrap example
+        export GERBIL_GSC=~/me/MuKn/src/gerbil.js/gambit/gsc/gsc
+        export GERBIL_SRC=~/me/MuKn/src/gerbil.js/gerbil
+
+        cd $GERBIL_SRC/src/ && ./build.sh gxi
+        cd $GERBIL_SRC/src/ && ./build.sh stage0
+ #+end_src
+
+
+
+
+#+begin_src sh :results verbatim :wrap example
+    export GERBIL_SRC=../gerbil
+    export GERBIL_GSI=$GERBIL_SRC/src/gerbil/gsi-js
+    export GERBIL_HOME=$GERBIL_SRC/bootstrap
+
+    $GERBIL_HOME/bin/gxi -e '(display* "The Answer to LTUAE is?" 42)' 2>&1 || true
+#+end_src
+
+#+RESULTS:
+#+begin_example
+,*** ERROR IN gx#core-bind!__% -- (Argument 1) Instance of #<type #2 table> expected
+(table-ref 'phi-context 'runtime-type-exhibitor-e #f)
+>
+,*** EOF again to exit
+#+end_example
+
+
+That will end my adventure today.
+* /File/ =runtime/build.scm=
+
+#+HEADER: :tangle ../gerbil/src/gerbil/runtime/build.scm
+#+begin_src scheme :noweb yes :shebang #!/usr/bin/env gsi-script
+  (##namespace (""))
+
+  (load "build-lib.scm")
+
+  (define *gx-modules*
+    (map (lambda (modf) (string-append modf ".scm"))
+         '("gx-gambc"
+           "gx-gambc0"
+           "gx-gambc1"
+           "gx-gambc2")))
+
+  (define (runtime-smp?)
+    (not (##vector-ref (thread-thread-group ##primordial-thread) 3)))
+
+  (define (update-gx-version)
+    (let* ((gx-version-path "gx-version.scm")
+           (git-version
+            (and (file-exists? "../../../.git")
+                 (with-exception-catcher
+                  (lambda (e) #f)
+                  (lambda ()
+                    (let* ((proc (open-process '(path: "git" arguments: ("describe" "--tags" "--always")
+                                                       show-console: #f)))
+                           (version (read-line proc))
+                           (status (process-status proc)))
+                      (close-port proc)
+                      (and (zero? status)
+                           (string? version) ;; (not (eof-object? version))
+                           version))))))
+           (gx-version-text
+            (and git-version
+                 (string-append "(define (gerbil-version-string) \"" git-version "\")\n")))
+           (previous-gx-version-text
+            (and gx-version-text ;; no need to compute it if no current version to replace it with
+                 (file-exists? gx-version-path)
+                 (call-with-input-file `(path: ,gx-version-path)
+                   (lambda (port) (read-line port #f))))))
+      (if (and gx-version-text (not (equal? gx-version-text previous-gx-version-text)))
+        (call-with-output-file `(path: ,gx-version-path create: maybe append: #f truncate: #t)
+          (lambda (port) (display gx-version-text port))))))
+
+  <<runtime-build-main>>
+#+end_src
+
+* /File/ =gx-gambc2.scm=
+
+#+HEADER: :tangle ../gerbil/src/gerbil/runtime/gx-gambc2.scm
+#+begin_src scheme :noweb yes
+  ;;; -*- Gerbil -*-
+  ;;; (C) vyzo at hackzen.org
+  ;;; Gerbil stage0 -- Gambit-C host compiler
+  (##namespace (""))
+  ;; (include "gx-gambc#.scm")
+
+  (declare
+    (block)
+    (standard-bindings)
+    (extended-bindings))
+  ;; (declare (not safe))
+
+  ;; shims to make things vectors
+  <<_gx#vector>>
+
+  ;; core [top] syntax -> gambit runtime compiler
+  (define-macro (%AST? e)
+    `(##structure-instance-of? ,e 'gerbil#AST::t))
+
+  (define-macro (%AST-e e)
+    `(##unchecked-structure-ref ,e 1 AST::t #f))
+
+  (define-macro (%AST-source e)
+    `(##unchecked-structure-ref ,e 2 AST::t #f))
+
+  (define (&SRC e #!optional (src-stx #f))
+    (cond
+     ((or (pair? e) (symbol? e))
+      (##make-source e (and (%AST? src-stx) (&locat (%AST-source src-stx)))))
+     ((%AST? e)
+      (##make-source (%AST-e e) (&locat (%AST-source e))))
+     (else
+      (error "BUG! Cannot sourcify object" e))))
+
+  (define (&locat loc)
+    (and (##locat? loc) loc))
+
+  (define (_gx#check-values obj k)
+    (let ((count (values-count obj)))
+      (unless (fx= count k)
+        (error (if (fx< count k)
+                 "Too few values for context"
+                 "Too many values for context")
+          (if (##values? obj) (##values->list obj) obj)
+          k))))
+
+  (define-macro (%&syntax-e obj)
+    `(_gx#vector-ref ,obj 1))
+
+  (define (_gx#compile stx)
+    (core-ast-case stx ()
+      ((form . _)
+       (cond
+        ((&core-resolve form)
+         => (lambda (bind)
+              ((%&syntax-e bind) stx)))
+        (else
+         (_gx#raise-syntax-error #f "Bad syntax" stx form))))))
+
+  (define (_gx#compile-error stx #!optional (detail #f))
+    (_gx#raise-syntax-error 'compile "Bad syntax; cannot compile" stx detail))
+
+  (define (_gx#compile-ignore% stx)
+    (&SRC '(##void) stx))
+
+  (define (_gx#compile-begin% stx)
+    (core-ast-case stx ()
+      ((_ . body)
+       (&SRC (cons '##begin (map _gx#compile body)) stx))))
+
+  (define (_gx#compile-begin-foreign% stx)
+    (core-ast-case stx ()
+      ((_ . body)
+       (&SRC (cons '##begin (&AST->datum body)) stx))))
+
+  (define (_gx#compile-import% stx)
+    (core-ast-case stx ()
+      ((_ . body)
+       (&SRC `(_gx#eval-import (##quote ,body)) stx))))
+
+  (define (_gx#compile-begin-annotation% stx)
+    (core-ast-case stx ()
+      ((_ ann expr)
+       (_gx#compile expr))))
+
+  (define (_gx#compile-define-values% stx)
+    (core-ast-case stx ()
+      ((_ hd expr)
+       (core-ast-case hd ()
+         ((#f)
+          (_gx#compile expr))
+         ((id)
+          (&SRC
+           `(##define ,(&SRC id)
+                      ,(_gx#compile expr))
+           stx))
+         (else
+          (let* ((ids hd)
+                 (len (length ids))
+                 (tmp (&SRC (gensym))))
+            (&SRC
+             `(##begin
+               ,(&SRC `(##define ,tmp ,(_gx#compile expr)) stx)
+               ,(&SRC `(_gx#check-values ,tmp ,len) stx)
+               ,@(filter-map
+                  (lambda (id k)
+                    (and (&AST-e id)
+                         (&SRC
+                          `(##define ,(&SRC id)
+                             )
+                          stx)))
+                  ids (iota len)))
+             stx)))))))
+
+  (define (_gx#compile-head-id e)
+    (&SRC (if (&AST-e e) e (gensym))))
+
+  (define (_gx#compile-lambda-head hd)
+    (let recur ((rest hd))
+      (core-ast-case rest ()
+        ((hd . rest)
+         (cons (_gx#compile-head-id hd)
+               (recur rest)))
+        (() '())
+        (tail
+         (_gx#compile-head-id tail)))))
+
+  (define (_gx#compile-lambda% stx)
+    (core-ast-case stx ()
+      ((_ hd body)
+       (&SRC
+        `(##lambda ,(_gx#compile-lambda-head hd)
+              ,(_gx#compile body))
+        stx))))
+
+  (define (_gx#compile-case-lambda% stx)
+    (define (variadic? hd)
+      (core-ast-case hd ()
+        ((_ . rest)
+         (variadic? rest))
+        (() #f)
+        (else #t)))
+
+    (define (arity hd)
+      (let lp ((rest hd) (k 0))
+        (core-ast-case rest ()
+          ((_ . rest)
+           (lp rest (fx1+ k)))
+          (else k))))
+
+    (define (generate rest args len)
+      (core-ast-case rest ()
+        ((clause . rest)
+         (core-ast-case clause ()
+           ((hd _)
+            (let ((clen (arity hd))
+                  (cmp (if (variadic? hd) 'fx>= 'fx=)))
+              (&SRC
+               `(##if (,cmp ,len ,clen)
+                      ,(&SRC
+                        `(##apply ,(_gx#compile-lambda% (cons '%#lambda clause))
+                                  ,args)
+                        stx)
+                      ,(generate rest args len))
+               stx)))))
+        (else
+         (&SRC `(error "No clause matching arguments" ,args) stx))))
+
+    (core-ast-case stx ()
+      ((_ clause)
+       (_gx#compile-lambda% (cons '%#lambda clause)))
+      ((_ . clauses)
+       (let ((args (&SRC (gensym) stx))
+             (len  (&SRC (gensym) stx)))
+         (&SRC
+          `(##lambda ,args
+                ,(&SRC
+                  `(##let ((,len ,(&SRC `(##length ,args) stx)))
+                          ,(generate clauses args len))
+                  stx))
+          stx)))))
+
+  (define (_gx#compile-let-form stx compile-simple compile-values)
+    (define (simple-bind? hd)
+      (core-match hd
+        ((id) #t)
+        (#f #t)
+        (else #f)))
+
+    (define (car-e hd)
+      (if (pair? hd) (car hd) hd))
+
+    (core-ast-case stx ()
+       ((_ () body)
+        (_gx#compile body))
+       ((_ hd body)
+        (let* ((hd-ids (map (lambda (bind)
+                              (core-ast-case bind ()
+                                ((ids _) ids)))
+                            hd))
+               (exprs  (map (lambda (bind)
+                              (core-ast-case bind ()
+                                ((_ expr) (_gx#compile expr))))
+                            hd))
+               (body   (_gx#compile body)))
+          (if (andmap simple-bind? hd-ids)
+            (compile-simple (map car-e hd-ids) exprs body)
+            (compile-values hd-ids exprs body))))))
+
+
+  (define (_gx#compile-let-values% stx)
+    (define (compile-simple hd-ids exprs body)
+      (&SRC
+       `(##let ,(map list (map _gx#compile-head-id hd-ids) exprs)
+               ,body)
+       stx))
+
+    (define (compile-values hd-ids exprs body)
+      (let lp ((rest hd-ids) (exprs exprs) (bind '()) (post '()))
+        (core-match rest
+          (((id) . rest)
+           (lp rest (cdr exprs)
+               (cons `(,(_gx#compile-head-id id) ,(car exprs)) bind)
+               post))
+          ((hd . rest)
+           (cond
+            ((&AST-id? hd)
+             (lp rest (cdr exprs)
+                 (cons `(,(_gx#compile-head-id hd) (values->list ,(car exprs)))
+                       bind)
+                 post))
+            ((list? hd)
+             (let* ((len (length hd))
+                    (tmp (&SRC (gensym))))
+               (lp rest (cdr exprs)
+                   (cons `(,tmp ,(car exprs)) bind)
+                   (cons (cons* tmp len
+                                (filter-map (lambda (id k)
+                                              (and (&AST-e id) (cons (&SRC id) k)))
+                                            hd (iota len)))
+                         post))))
+            (else
+             (_gx#compile-error stx hd))))
+          (else
+           (&SRC
+            `(##let ,(reverse bind)
+                    ,(compile-post post body))
+            stx)))))
+
+    (define (compile-post post body)
+      (let lp ((rest post) (check '()) (bind '()))
+        (core-match rest
+          (((tmp len . init) . rest)
+           (lp rest
+               (cons (&SRC `(_gx#check-values ,tmp ,len) stx) check)
+               (foldr (lambda (hd r)
+                        (core-match hd
+                          ((id . k)
+                           (cons `(,id (##vector-ref ,tmp ,k)) r))))
+                      bind init)))
+          (else
+           (&SRC
+            `(##begin ,@check
+                      ,(&SRC `(##let ,bind ,body) stx))
+            stx)))))
+
+    (_gx#compile-let-form stx compile-simple compile-values))
+
+  (define (_gx#compile-letrec-values% stx)
+    (define (compile-simple hd-ids exprs body)
+      (&SRC
+       `(##letrec ,(map list (map _gx#compile-head-id hd-ids) exprs)
+                  ,body)
+       stx))
+
+    (define (compile-values hd-ids exprs body)
+      (let lp ((rest hd-ids) (exprs exprs) (pre '()) (bind '()) (post '()))
+        (core-match rest
+          (((id) . rest)
+           (lp rest (cdr exprs)
+               pre
+               (cons `(,(_gx#compile-head-id id) ,(car exprs)) bind)
+               post))
+          ((hd . rest)
+           (cond
+            ((&AST-id? hd)
+             (lp rest (cdr exprs)
+                 pre
+                 (cons `(,(_gx#compile-head-id hd) (values->list ,(car exprs)))
+                       bind)
+                 post))
+            ((list? hd)
+             (let* ((len (length hd))
+                    (tmp (&SRC (gensym))))
+               (lp rest (cdr exprs)
+                   (foldl (lambda (id r)
+                            (if (&AST-e id) (cons `(,(&SRC id) #!void) r) r))
+                          pre hd)
+                   (cons `(,tmp ,(car exprs)) bind)
+                   (cons (cons* tmp len
+                                (filter-map (lambda (id k)
+                                              (and (&AST-e id) (cons (&SRC id) k)))
+                                            hd (iota len)))
+                         post))))
+            (else
+             (_gx#compile-error stx hd))))
+          (else
+           (compile-inner pre bind post body)))))
+
+    (define (compile-inner pre bind post body)
+      (if (null? pre)
+        (compile-bind bind post body)
+        (&SRC
+         `(##let ,(reverse pre)
+                 ,(compile-bind bind post body))
+         stx)))
+
+    (define (compile-bind bind post body)
+      (&SRC
+       `(##letrec ,(reverse bind)
+                  ,(compile-post post body))
+       stx))
+
+    (define (compile-post post body)
+      (let lp ((rest post) (check '()) (bind '()))
+        (core-match rest
+          (((tmp len . init) . rest)
+           (lp rest
+               (cons (&SRC `(_gx#check-values ,tmp ,len) stx) check)
+               (foldr (lambda (hd r)
+                        (core-match hd
+                          ((id . k)
+                           (cons `(##set! ,id (##vector-ref ,tmp ,k)) r))))
+                      bind init)))
+          (else
+           (&SRC
+            `(##begin ,@check ,@bind ,body)
+            stx)))))
+
+    (_gx#compile-let-form stx compile-simple compile-values))
+
+  (define (_gx#compile-letrec*-values% stx)
+    (define (compile-simple hd-ids exprs body)
+      (&SRC
+       `(##letrec* ,(map list (map _gx#compile-head-id hd-ids) exprs)
+                   ,body)
+       stx))
+
+    (define (compile-values hd-ids exprs body)
+      (let lp ((rest hd-ids) (exprs exprs) (bind '()) (post '()))
+        (core-match rest
+          (((hd) . rest)
+           (if (&AST-id? hd)
+             (let ((id (&SRC hd)))
+               (lp rest (cdr exprs)
+                   (cons `(,id #!void) bind)
+                   (cons `(,id ,(car exprs)) post)))
+             (lp rest (cdr exprs) bind
+                 (cons `(#f ,(car exprs)) post))))
+          ((hd . rest)
+           (cond
+            ((&AST-id? hd)
+             (let ((id (&SRC hd)))
+               (lp rest (cdr exprs)
+                   (cons `(,id #!void) bind)
+                   (cons `(,id (values->list ,(car exprs))) post))))
+            ((not (&AST-e hd))
+             (lp rest (cdr exprs) bind
+                 (cons `(#f ,(car exprs)) post)))
+            ((list? hd)
+             (let* ((len (length hd))
+                    (tmp (&SRC (gensym))))
+               (lp rest (cdr exprs)
+                   (foldl (lambda (id r)
+                            (if (&AST-e id) (cons `(,(&SRC id) #!void) r) r))
+                          bind hd)
+                   (cons (cons* tmp (car exprs) len
+                                (filter-map (lambda (id k)
+                                              (and (&AST-e id) (cons (&SRC id) k)))
+                                            hd (iota len)))
+                         post))))
+            (else
+             (_gx#compile-error stx hd))))
+          (else
+           (compile-bind bind post body)))))
+
+    (define (compile-bind bind post body)
+      (&SRC
+       `(##let ,(reverse bind)
+               ,(compile-post post body))
+       stx))
+
+    (define (compile-post post body)
+      (&SRC
+       `(##begin
+         ,@(foldl
+             (lambda (hd r)
+               (core-match hd
+                 ((#f expr)
+                  (cons expr r))
+                 ((id expr)
+                  (cons (&SRC `(##set! ,id ,expr) stx) r))
+                 ((tmp expr len . init)
+                  (cons
+                   (&SRC
+                    `(##let ((,tmp ,expr))
+                            ,(&SRC `(_gx#check-values ,tmp ,len) stx)
+                            ,@(map (lambda (hd)
+                                     (core-match hd
+                                       ((id . k)
+                                        (&SRC
+                                         `(##set! ,id (##vector-ref ,tmp ,k))
+                                         stx))))
+                                   init))
+                    stx)
+                   r))))
+             (list body) post))
+       stx))
+
+    (_gx#compile-let-form stx compile-simple compile-values))
+
+  (define (_gx#compile-call% stx)
+    (core-ast-case stx ()
+      ((_ rator . rands)
+       (&SRC (cons (_gx#compile rator)
+                   (map _gx#compile rands))
+             stx))))
+
+  (define (_gx#compile-ref% stx)
+    (core-ast-case stx ()
+      ((_ id)
+       (&SRC id stx))))
+
+  (define (_gx#compile-setq% stx)
+    (core-ast-case stx ()
+      ((_ id expr)
+       (&SRC `(##set! ,(&SRC id stx) ,(_gx#compile expr)) stx))))
+
+  (define (_gx#compile-if% stx)
+    (core-ast-case stx ()
+      ((_ p t f)
+       (&SRC `(##if ,(_gx#compile p)
+                    ,(_gx#compile t)
+                    ,(_gx#compile f))
+             stx))))
+
+  (define (_gx#compile-quote% stx)
+    (core-ast-case stx ()
+      ((_ e) (&SRC `(##quote ,(&AST->datum e)) stx))))
+
+  (define (_gx#compile-quote-syntax% stx)
+    (core-ast-case stx ()
+      ((_ e) (&SRC `(##quote ,e) stx))))
+
+  (define-core-forms
+    (%#begin            special: compile-begin%)
+    (%#begin-syntax     special: compile-ignore%)
+    (%#begin-foreign    special: compile-begin-foreign%)
+    (%#module           special: compile-ignore%)
+    (%#import           special: compile-import%)
+    (%#export           special: compile-ignore%)
+    (%#provide          special: compile-ignore%)
+    (%#define-values    special: compile-define-values%)
+    (%#define-syntax    special: compile-ignore%)
+    (%#define-alias     special: compile-ignore%)
+    (%#define-runtime   special: compile-ignore%)
+    (%#extern           special: compile-ignore%)
+    (%#declare          special: compile-ignore%)
+    (%#begin-annotation expr:    compile-begin-annotation%)
+    (%#quote            expr:    compile-quote%)
+    (%#quote-syntax     expr:    compile-quote-syntax%)
+    (%#lambda                expr:    compile-lambda%)
+    (%#case-lambda           expr:    compile-case-lambda%)
+    (%#let-values       expr:    compile-let-values%)
+    (%#letrec-values    expr:    compile-letrec-values%)
+    (%#letrec*-values   expr:    compile-letrec*-values%)
+    (%#call             expr:    compile-call%)
+    (%#if               expr:    compile-if%)
+    (%#ref              expr:    compile-ref%)
+    (%#set!             expr:    compile-setq%)
+    ;; intermediate -- meta-compiler must compile
+    (%#cond-expand      #f)
+    (%#include          #f)
+    (%#let-syntax       #f)
+    (%#letrec-syntax    #f))
+
+#+end_src
 * /File/ =gerbil/src/gerbil/runtime/gx-gambc#.scm=
 #+HEADER: :tangle ../gerbil/src/gerbil/runtime/gx-gambc#.scm
 #+begin_src scheme :noweb yes

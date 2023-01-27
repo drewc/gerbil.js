@@ -8,17 +8,53 @@
   (block)
   (standard-bindings)
   (extended-bindings))
-(declare (not safe))
+;; (declare (not safe))
+
+;; shims to make things vectors
+(define (_gx#vector-ref svs n)
+  (if (##structure? svs)
+      (##unchecked-structure-ref svs n ##type-type _gx#vector-ref)
+      (if (##values? svs)
+          (##values-ref svs n)
+          (if (##vector? svs)
+           (##vector-ref svs n)
+           (error "Tried _gx#vector-ref on a non-vector/struct/values: " svs)))))
+(define (_gx#vector-set! svs i value)
+  (if (##structure? svs)
+      (##unchecked-structure-set!
+       svs value i ##type-type _gx#vector-set!)
+      (if (##values? svs)
+          (##values-set! svs i value)
+          (if (##vector? svs)
+           (##vector-set! svs i value)
+           (error "Tried _gx#vector-set! on a non-vector/struct/values: " svs)))))
+(define (_gx#vector-length svs)
+  (if (##structure? svs) (##structure-length svs)
+      (if (##values? svs) (##values-length svs)
+          (if (##vector? svs) (##vector-length svs)
+           (error "Tried _gx#vector-length on a non-vector/struct/values: " svs)))))
+(define (_gx#vector->list svs)
+  (if (##vector? svs)
+      (##vector->list svs)
+      (if (##structure? svs)
+          (let ((end (##structure-length svs)))
+            (let sl ((n 0))
+              (if (= n end) '()
+                  (cons (##unchecked-structure-ref
+                         svs n ##type-type _gx#vector->list)
+                        (sl (+ 1 n))))))
+          (if (##values? svs) (##values->list svs)
+              (error "Tried _gx#vector->list on a non-vector/struct/values: " svs)))))
 
 ;; core [top] syntax -> gambit runtime compiler
 (define-macro (%AST? e)
   `(##structure-instance-of? ,e 'gerbil#AST::t))
 
 (define-macro (%AST-e e)
-  `(##vector-ref ,e 1))
+  `(##unchecked-structure-ref ,e 1 AST::t #f))
 
 (define-macro (%AST-source e)
-  `(##vector-ref ,e 2))
+  `(##unchecked-structure-ref ,e 2 AST::t #f))
 
 (define (&SRC e #!optional (src-stx #f))
   (cond
@@ -38,11 +74,11 @@
       (error (if (fx< count k)
                "Too few values for context"
                "Too many values for context")
-        (if (##values? obj) (##vector->list obj) obj)
+        (if (##values? obj) (##values->list obj) obj)
         k))))
 
 (define-macro (%&syntax-e obj)
-  `(##vector-ref ,obj 1))
+  `(_gx#vector-ref ,obj 1))
 
 (define (_gx#compile stx)
   (core-ast-case stx ()
@@ -104,7 +140,7 @@
                   (and (&AST-e id)
                        (&SRC
                         `(##define ,(&SRC id)
-                                   (##vector-ref ,tmp ,k))
+                           )
                         stx)))
                 ids (iota len)))
            stx)))))))

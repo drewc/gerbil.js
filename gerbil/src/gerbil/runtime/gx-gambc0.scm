@@ -588,11 +588,7 @@
 (define direct-class-instance?
   direct-instance?)
 
-(define (make-object klass k)
-  (let ((obj (%%make-vector (%%fx+ k 1) #f)))
-    (%%structor-set! obj 0 klass)
-    (%%subtype-set! obj (macro-subtype-structure))
-    obj))
+(define (make-object klass k) (%%make-structure klass (%%fx+ k 1)))
 
 (define (make-struct-instance klass . args)
   (let ((fields (type-descriptor-fields klass)))

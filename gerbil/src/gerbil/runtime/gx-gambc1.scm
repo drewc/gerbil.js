@@ -236,6 +236,9 @@
 (define &current-expander
   (make-parameter #f))
 (define &current-compiler
+
+  Because we are a few files before the expander bootstrap having a working Gerbil is not a bad idea.
+
   (make-parameter #f))
 (define &current-context
   (make-parameter #f))

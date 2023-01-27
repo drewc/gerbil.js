@@ -220,11 +220,11 @@
                                                     _tl3260732925_
                                                     '0)))
                                               (let ((_tl3262232790_
-                                                     (##vector-ref
+                                                     (_gx#vector-ref
                                                       ___splice4161241613_
                                                       '1))
                                                     (_target3262032787_
-                                                     (##vector-ref
+                                                     (_gx#vector-ref
                                                       ___splice4161241613_
                                                       '0)))
                                                 (if (gx#stx-null?
@@ -285,15 +285,15 @@
                                   (begin
                                     (let ((_g42184_
                                            (if (##values? _g42183_)
-                                               (##vector-length _g42183_)
+                                               (_gx#vector-length _g42183_)
                                                1)))
                                       (if (not (##fx= _g42184_ 2))
                                           (error "Context expects 2 values"
                                                  _g42184_)))
                                     (let ((_target3295832992_
-                                           (##vector-ref _g42183_ 0))
+                                           (_gx#vector-ref _g42183_ 0))
                                           (_tl3296032995_
-                                           (##vector-ref _g42183_ 1)))
+                                           (_gx#vector-ref _g42183_ 1)))
                                       (if (gx#stx-pair? _tl3296032995_)
                                           (let ((_e3296732998_
                                                  (gx#syntax-e _tl3296032995_)))
@@ -332,18 +332,18 @@
                                                  (let ((_g42186_
                                                         (if (##values?
                                                              _g42185_)
-                                                            (##vector-length
+                                                            (_gx#vector-length
                                                              _g42185_)
                                                             1)))
                                                    (if (not (##fx= _g42186_ 2))
                                                        (error "Context expects 2 values"
                                                               _g42186_)))
                                                  (let ((_target3305533076_
-                                                        (##vector-ref
+                                                        (_gx#vector-ref
                                                          _g42185_
                                                          0))
                                                        (_tl3305733079_
-                                                        (##vector-ref
+                                                        (_gx#vector-ref
                                                          _g42185_
                                                          1)))
                                                    (if (gx#stx-null?
@@ -456,7 +456,7 @@
                                                   (let ((_g42188_
                                                          (if (##values?
                                                               _g42187_)
-                                                             (##vector-length
+                                                             (_gx#vector-length
                                                               _g42187_)
                                                              1)))
                                                     (if (not (##fx= _g42188_
@@ -465,11 +465,11 @@
                 (error "Context expects 2 values" _g42188_)))
 ;;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
                                                   (let ((_target3338833409_
-                                                         (##vector-ref
+                                                         (_gx#vector-ref
                                                           _g42187_
                                                           0))
                                                         (_tl3339033412_
-                                                         (##vector-ref
+                                                         (_gx#vector-ref
                                                           _g42187_
                                                           1)))
                                                     (if (gx#stx-null?
@@ -596,11 +596,11 @@
                                                   _tl3318933245_
                                                   '0)))
                                             (let ((_tl3320933305_
-                                                   (##vector-ref
+                                                   (_gx#vector-ref
                                                     ___splice4171041711_
                                                     '1))
                                                   (_target3320733302_
-                                                   (##vector-ref
+                                                   (_gx#vector-ref
                                                     ___splice4171041711_
                                                     '0)))
                                               (if (gx#stx-null? _tl3320933305_)
@@ -670,11 +670,11 @@
                                             _tl3317133522_
                                             '0)))
                                       (let ((_tl3317433528_
-                                             (##vector-ref
+                                             (_gx#vector-ref
                                               ___splice4170441705_
                                               '1))
                                             (_target3317233525_
-                                             (##vector-ref
+                                             (_gx#vector-ref
                                               ___splice4170441705_
                                               '0)))
                                         (if (gx#stx-null? _tl3317433528_)
@@ -695,11 +695,11 @@
                                                         _hd3317033519_
                                                         '0)))
                                                   (let ((_tl3319233251_
-                                                         (##vector-ref
+                                                         (_gx#vector-ref
                                                           ___splice4170841709_
                                                           '1))
                                                         (_target3319033248_
-                                                         (##vector-ref
+                                                         (_gx#vector-ref
                                                           ___splice4170841709_
                                                           '0)))
                                                     (if (gx#stx-null?
@@ -722,11 +722,11 @@
                                                 _hd3317033519_
                                                 '0)))
                                           (let ((_tl3319233251_
-                                                 (##vector-ref
+                                                 (_gx#vector-ref
                                                   ___splice4170841709_
                                                   '1))
                                                 (_target3319033248_
-                                                 (##vector-ref
+                                                 (_gx#vector-ref
                                                   ___splice4170841709_
                                                   '0)))
                                             (if (gx#stx-null? _tl3319233251_)
@@ -748,11 +748,11 @@
                                             _hd3317033519_
                                             '0)))
                                       (let ((_tl3319233251_
-                                             (##vector-ref
+                                             (_gx#vector-ref
                                               ___splice4170841709_
                                               '1))
                                             (_target3319033248_
-                                             (##vector-ref
+                                             (_gx#vector-ref
                                               ___splice4170841709_
                                               '0)))
                                         (if (gx#stx-null? _tl3319233251_)
@@ -793,15 +793,15 @@
                                       (begin
                                         (let ((_g42190_
                                                (if (##values? _g42189_)
-                                                   (##vector-length _g42189_)
+                                                   (_gx#vector-length _g42189_)
                                                    1)))
                                           (if (not (##fx= _g42190_ 2))
                                               (error "Context expects 2 values"
                                                      _g42190_)))
                                         (let ((_target3360233643_
-                                               (##vector-ref _g42189_ 0))
+                                               (_gx#vector-ref _g42189_ 0))
                                               (_tl3360433646_
-                                               (##vector-ref _g42189_ 1)))
+                                               (_gx#vector-ref _g42189_ 1)))
                                           (if (gx#stx-null? _tl3360433646_)
                                               (letrec ((_loop3360533649_
                                                         (lambda (_hd3360333653_
@@ -863,15 +863,15 @@
                                       (begin
                                         (let ((_g42192_
                                                (if (##values? _g42191_)
-                                                   (##vector-length _g42191_)
+                                                   (_gx#vector-length _g42191_)
                                                    1)))
                                           (if (not (##fx= _g42192_ 2))
                                               (error "Context expects 2 values"
                                                      _g42192_)))
                                         (let ((_target3372033761_
-                                               (##vector-ref _g42191_ 0))
+                                               (_gx#vector-ref _g42191_ 0))
                                               (_tl3372233764_
-                                               (##vector-ref _g42191_ 1)))
+                                               (_gx#vector-ref _g42191_ 1)))
                                           (if (gx#stx-null? _tl3372233764_)
                                               (letrec ((_loop3372333767_
                                                         (lambda (_hd3372133771_
@@ -940,18 +940,18 @@
                                               (begin
                                                 (let ((_g42194_
                                                        (if (##values? _g42193_)
-                                                           (##vector-length
+                                                           (_gx#vector-length
                                                             _g42193_)
                                                            1)))
                                                   (if (not (##fx= _g42194_ 2))
                                                       (error "Context expects 2 values"
                                                              _g42194_)))
                                                 (let ((_target3384233893_
-                                                       (##vector-ref
+                                                       (_gx#vector-ref
                                                         _g42193_
                                                         0))
                                                       (_tl3384433896_
-                                                       (##vector-ref
+                                                       (_gx#vector-ref
                                                         _g42193_
                                                         1)))
                                                   (if (gx#stx-null?

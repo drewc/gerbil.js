@@ -1,5 +1,4 @@
 #!/usr/bin/env gsi-script
-
 (##namespace (""))
 
 (load "build-lib.scm")
@@ -42,14 +41,15 @@
         (lambda (port) (display gx-version-text port))))))
 
 (define (main libdir)
-  (displayln "building gerbil/runtime in " libdir)
-  (update-gx-version)
-  (parallel-build
-   *gx-modules*
-   (compiler `("-o" ,libdir
-               "-cc-options" "--param max-gcse-memory=300000000"
-               ,@(if (runtime-smp?)
-                   '("-e" "(define-cond-expand-feature|enable-smp|)")
-                   '())
-               "-e" "(include \"gx-gambc#.scm\")"))
-   false))
+(displayln "building gerbil/runtime in " libdir)
+(update-gx-version)
+(parallel-build
+ *gx-modules*
+ (compiler `("-o" ,libdir
+             "-target" "js"
+        ;;     "-cc-options" "--param max-gcse-memory=300000000"
+        ;;     ,@(if (runtime-smp?)
+        ;;       '("-e" "(define-cond-expand-feature|enable-smp|)")
+        ;;       '())
+             "-e" "(include \"gx-gambc#.scm\")"))
+ false))

@@ -684,16 +684,16 @@
                                                     '0)))
                                       (begin
                                         (let ((_g5046_ (if (##values? _g5045_)
-                                                           (##vector-length
+                                                           (_gx#vector-length
                                                             _g5045_)
                                                            1)))
                                           (if (not (##fx= _g5046_ 2))
                                               (error "Context expects 2 values"
                                                      _g5046_)))
                                         (let ((_target621642_
-                                               (##vector-ref _g5045_ 0))
+                                               (_gx#vector-ref _g5045_ 0))
                                               (_tl623645_
-                                               (##vector-ref _g5045_ 1)))
+                                               (_gx#vector-ref _g5045_ 1)))
                                           (if (gx#stx-null? _tl623645_)
                                               (letrec ((_loop624648_
                                                         (lambda (_hd622652_

@@ -266,12 +266,12 @@
 ;;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   (define gx#root-context:::init!__%
     (lambda (_self18257_ _bind?18258_)
-      (if (##fx< '2 (##vector-length _self18257_))
+      (if (##fx< '2 (_gx#vector-length _self18257_))
           (begin
-            (##vector-set! _self18257_ '1 'root)
-            (##vector-set! _self18257_ '2 (make-table 'test: eq?)))
-          (error '"struct-instance-init!: too many arguments for struct"
-                 _self18257_))
+            (_gx#vector-set! _self18257_ '1 'root)
+            (_gx#vector-set! _self18257_ '2 (make-table 'test: eq?)))
+          (error '"struct-instance-init!: too many arguments for struct" (_gx#vector-length _self18257_)
+                 _self18257_ ))
       (if _bind?18258_
           (begin
             (call-method _self18257_ 'bind-core-syntax-expanders!)
@@ -305,13 +305,13 @@
                                 (make-object gx#root-context::t '2)))
                            (gx#root-context:::init!__0 __obj18301)
                            __obj18301)))))))
-        (if (##fx< '5 (##vector-length _self18113_))
+        (if (##fx< '5 (_gx#vector-length _self18113_))
             (begin
-              (##vector-set! _self18113_ '1 'top)
-              (##vector-set! _self18113_ '2 (make-table 'test: eq?))
-              (##vector-set! _self18113_ '3 _super18122_)
-              (##vector-set! _self18113_ '4 '#f)
-              (##vector-set! _self18113_ '5 '#f))
+              (_gx#vector-set! _self18113_ '1 'top)
+              (_gx#vector-set! _self18113_ '2 (make-table 'test: eq?))
+              (_gx#vector-set! _self18113_ '3 _super18122_)
+              (_gx#vector-set! _self18113_ '4 '#f)
+              (_gx#vector-set! _self18113_ '5 '#f))
             (error '"struct-instance-init!: too many arguments for struct"
                    _self18113_)))))
   (define gx#top-context:::init!__0

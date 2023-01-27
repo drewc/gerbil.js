@@ -75,16 +75,16 @@
                                         (begin
                                           (let ((_g4788_ (if (##values?
                                                               _g4787_)
-                                                             (##vector-length
+                                                             (_gx#vector-length
                                                               _g4787_)
                                                              1)))
                                             (if (not (##fx= _g4788_ 2))
                                                 (error "Context expects 2 values"
                                                        _g4788_)))
                                           (let ((_target404445_
-                                                 (##vector-ref _g4787_ 0))
+                                                 (_gx#vector-ref _g4787_ 0))
                                                 (_tl406448_
-                                                 (##vector-ref _g4787_ 1)))
+                                                 (_gx#vector-ref _g4787_ 1)))
                                             (if (gx#stx-null? _tl406448_)
                                                 (letrec ((_loop407451_
                                                           (lambda (_hd405455_
@@ -116,7 +116,7 @@
                                                    (let ((_g4790_ (if (##values?
 ;;<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
                                _g4789_)
-                              (##vector-length _g4789_)
+                              (_gx#vector-length _g4789_)
                               1)))
 ;;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
                                                      (if (not (##fx= _g4790_
@@ -125,11 +125,11 @@
                  (error "Context expects 2 values" _g4790_)))
 ;;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
                                                    (let ((_target500521_
-                                                          (##vector-ref
+                                                          (_gx#vector-ref
                                                            _g4789_
                                                            0))
                                                          (_tl502524_
-                                                          (##vector-ref
+                                                          (_gx#vector-ref
                                                            _g4789_
                                                            1)))
                                                      (if (gx#stx-null?

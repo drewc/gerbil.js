@@ -1880,7 +1880,7 @@
                                          (cons (gx#datum->syntax__0 '#f 'fx>)
                                                (cons (cons (gx#datum->syntax__0
                                                             '#f
-                                                            '##vector-length)
+                                                            '_gx#vector-length)
                                                            (cons _L6387_ '()))
                                                      (cons '3 '()))))
                                        _hd63536381_)

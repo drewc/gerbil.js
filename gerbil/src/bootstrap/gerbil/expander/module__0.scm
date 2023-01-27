@@ -214,19 +214,19 @@
   (define gx#current-module-reader-args (make-parameter '#f))
   (define gx#module-context:::init!
     (lambda (_self15949_ _id15950_ _super15951_ _ns15952_ _path15953_)
-      (if (##fx< '11 (##vector-length _self15949_))
+      (if (##fx< '11 (_gx#vector-length _self15949_))
           (begin
-            (##vector-set! _self15949_ '1 _id15950_)
-            (##vector-set! _self15949_ '2 (make-table 'test: eq?))
-            (##vector-set! _self15949_ '3 _super15951_)
-            (##vector-set! _self15949_ '4 '#f)
-            (##vector-set! _self15949_ '5 '#f)
-            (##vector-set! _self15949_ '6 _ns15952_)
-            (##vector-set! _self15949_ '7 _path15953_)
-            (##vector-set! _self15949_ '8 '())
-            (##vector-set! _self15949_ '9 '())
-            (##vector-set! _self15949_ '10 '#f)
-            (##vector-set! _self15949_ '11 '#f))
+            (_gx#vector-set! _self15949_ '1 _id15950_)
+            (_gx#vector-set! _self15949_ '2 (make-table 'test: eq?))
+            (_gx#vector-set! _self15949_ '3 _super15951_)
+            (_gx#vector-set! _self15949_ '4 '#f)
+            (_gx#vector-set! _self15949_ '5 '#f)
+            (_gx#vector-set! _self15949_ '6 _ns15952_)
+            (_gx#vector-set! _self15949_ '7 _path15953_)
+            (_gx#vector-set! _self15949_ '8 '())
+            (_gx#vector-set! _self15949_ '9 '())
+            (_gx#vector-set! _self15949_ '10 '#f)
+            (_gx#vector-set! _self15949_ '11 '#f))
           (error '"struct-instance-init!: too many arguments for struct"
                  _self15949_))))
   (bind-method! gx#module-context::t ':init! gx#module-context:::init! '#f)
@@ -254,35 +254,35 @@
                          '#f)))
                   (_e15809_
                    (make-promise (lambda () (gx#eval-module _ctx15794_)))))
-              (if (##fx< '8 (##vector-length _self15793_))
+              (if (##fx< '8 (_gx#vector-length _self15793_))
                   (begin
-                    (##vector-set! _self15793_ '1 _id15806_)
-                    (##vector-set!
+                    (_gx#vector-set! _self15793_ '1 _id15806_)
+                    (_gx#vector-set!
                      _self15793_
                      '2
                      (make-table 'test: eq? 'size: (length _in15808_)))
-                    (##vector-set! _self15793_ '3 _super15803_)
-                    (##vector-set! _self15793_ '4 '#f)
-                    (##vector-set! _self15793_ '5 '#f)
-                    (##vector-set! _self15793_ '6 _path15807_)
-                    (##vector-set! _self15793_ '7 _in15808_)
-                    (##vector-set! _self15793_ '8 _e15809_))
+                    (_gx#vector-set! _self15793_ '3 _super15803_)
+                    (_gx#vector-set! _self15793_ '4 '#f)
+                    (_gx#vector-set! _self15793_ '5 '#f)
+                    (_gx#vector-set! _self15793_ '6 _path15807_)
+                    (_gx#vector-set! _self15793_ '7 _in15808_)
+                    (_gx#vector-set! _self15793_ '8 _e15809_))
                   (error '"struct-instance-init!: too many arguments for struct"
                          _self15793_))
               (for-each
                (lambda (_g1581015812_)
                  (gx#core-bind-weak-import!__% _g1581015812_ _self15793_))
                _in15808_))
-            (if (##fx< '8 (##vector-length _self15793_))
+            (if (##fx< '8 (_gx#vector-length _self15793_))
                 (begin
-                  (##vector-set! _self15793_ '1 '#f)
-                  (##vector-set! _self15793_ '2 (make-table 'test: eq?))
-                  (##vector-set! _self15793_ '3 _super15803_)
-                  (##vector-set! _self15793_ '4 '#f)
-                  (##vector-set! _self15793_ '5 '#f)
-                  (##vector-set! _self15793_ '6 '#f)
-                  (##vector-set! _self15793_ '7 '())
-                  (##vector-set! _self15793_ '8 '#f))
+                  (_gx#vector-set! _self15793_ '1 '#f)
+                  (_gx#vector-set! _self15793_ '2 (make-table 'test: eq?))
+                  (_gx#vector-set! _self15793_ '3 _super15803_)
+                  (_gx#vector-set! _self15793_ '4 '#f)
+                  (_gx#vector-set! _self15793_ '5 '#f)
+                  (_gx#vector-set! _self15793_ '6 '#f)
+                  (_gx#vector-set! _self15793_ '7 '())
+                  (_gx#vector-set! _self15793_ '8 '#f))
                 (error '"struct-instance-init!: too many arguments for struct"
                        _self15793_))))))
   (define gx#prelude-context:::init!__0
@@ -303,11 +303,11 @@
   (bind-method! gx#prelude-context::t ':init! gx#prelude-context:::init! '#f)
   (define gx#import-export-expander-init!
     (lambda (_self15667_ _e15668_)
-      (if (##fx< '3 (##vector-length _self15667_))
+      (if (##fx< '3 (_gx#vector-length _self15667_))
           (begin
-            (##vector-set! _self15667_ '1 _e15668_)
-            (##vector-set! _self15667_ '2 (gx#current-expander-context))
-            (##vector-set! _self15667_ '3 (fx- (gx#current-expander-phi) '1)))
+            (_gx#vector-set! _self15667_ '1 _e15668_)
+            (_gx#vector-set! _self15667_ '2 (gx#current-expander-context))
+            (_gx#vector-set! _self15667_ '3 (fx- (gx#current-expander-phi) '1)))
           (error '"struct-instance-init!: too many arguments for struct"
                  _self15667_))))
   (define gx#import-expander:::init! gx#import-export-expander-init!)
@@ -450,14 +450,14 @@
                        (begin
                          (let ((_g16019_
                                 (if (##values? _g16018_)
-                                    (##vector-length _g16018_)
+                                    (_gx#vector-length _g16018_)
                                     1)))
                            (if (not (##fx= _g16019_ 4))
                                (error "Context expects 4 values" _g16019_)))
-                         (let ((_pre14938_ (##vector-ref _g16018_ 0))
-                               (_id14939_ (##vector-ref _g16018_ 1))
-                               (_ns14940_ (##vector-ref _g16018_ 2))
-                               (_body14941_ (##vector-ref _g16018_ 3)))
+                         (let ((_pre14938_ (_gx#vector-ref _g16018_ 0))
+                               (_id14939_ (_gx#vector-ref _g16018_ 1))
+                               (_ns14940_ (_gx#vector-ref _g16018_ 2))
+                               (_body14941_ (_gx#vector-ref _g16018_ 3)))
                            (let* ((_prelude14946_
                                    (if (##structure-instance-of?
                                         _pre14938_
@@ -683,13 +683,13 @@
                     (begin
                       (let ((_g16023_
                              (if (##values? _g16022_)
-                                 (##vector-length _g16022_)
+                                 (_gx#vector-length _g16022_)
                                  1)))
                         (if (not (##fx= _g16023_ 3))
                             (error "Context expects 3 values" _g16023_)))
-                      (let ((_pre14737_ (##vector-ref _g16022_ 0))
-                            (_ns14738_ (##vector-ref _g16022_ 1))
-                            (_pkg14739_ (##vector-ref _g16022_ 2)))
+                      (let ((_pre14737_ (_gx#vector-ref _g16022_ 0))
+                            (_ns14738_ (_gx#vector-ref _g16022_ 1))
+                            (_pkg14739_ (_gx#vector-ref _g16022_ 2)))
                         (let* ((_prelude14741_
                                 (if (gx#core-bound-module-prelude? _pre14737_)
                                     (gx#syntax-local-e__0 _pre14737_)
@@ -853,13 +853,13 @@
                     (begin
                       (let ((_g16025_
                              (if (##values? _g16024_)
-                                 (##vector-length _g16024_)
+                                 (_gx#vector-length _g16024_)
                                  1)))
                         (if (not (##fx= _g16025_ 3))
                             (error "Context expects 3 values" _g16025_)))
-                      (let ((_pre14618_ (##vector-ref _g16024_ 0))
-                            (_ns14619_ (##vector-ref _g16024_ 1))
-                            (_pkg14620_ (##vector-ref _g16024_ 2)))
+                      (let ((_pre14618_ (_gx#vector-ref _g16024_ 0))
+                            (_ns14619_ (_gx#vector-ref _g16024_ 1))
+                            (_pkg14620_ (_gx#vector-ref _g16024_ 2)))
                         (let* ((_prelude14622_
                                 (gx#import-module__0 _pre14618_))
                                (_read-module-body14676_
@@ -875,21 +875,21 @@
                                                       _g1462714637_
                                                       'gx#module-export::t)
                                                      (let* ((_e1463214652_
-                                                             (##vector-ref
+                                                             (_gx#vector-ref
                                                               _g1462714637_
                                                               '1))
                                                             (_e1463314655_
-                                                             (##vector-ref
+                                                             (_gx#vector-ref
                                                               _g1462714637_
                                                               '2))
                                                             (_e1463414658_
-                                                             (##vector-ref
+                                                             (_gx#vector-ref
                                                               _g1462714637_
                                                               '3)))
                                                        (if (##eq? _e1463414658_
 ;;<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
                           '1)
-                   (let ((_e1463514661_ (##vector-ref _g1462714637_ '4)))
+                   (let ((_e1463514661_ (_gx#vector-ref _g1462714637_ '4)))
                      (if ((lambda (_g1466314665_)
                             (eq? _g1466314665_ 'read-module-body))
                           _e1463514661_)
@@ -1345,13 +1345,13 @@
         (if (##structure-direct-instance-of?
              _in1424314252_
              'gx#module-import::t)
-            (let* ((_e1424714272_ (##vector-ref _in1424314252_ '1))
+            (let* ((_e1424714272_ (_gx#vector-ref _in1424314252_ '1))
                    (_source14275_ _e1424714272_)
-                   (_e1424814277_ (##vector-ref _in1424314252_ '2))
+                   (_e1424814277_ (_gx#vector-ref _in1424314252_ '2))
                    (_key14280_ _e1424814277_)
-                   (_e1424914282_ (##vector-ref _in1424314252_ '3))
+                   (_e1424914282_ (_gx#vector-ref _in1424314252_ '3))
                    (_phi14285_ _e1424914282_)
-                   (_e1425014287_ (##vector-ref _in1424314252_ '4))
+                   (_e1425014287_ (_gx#vector-ref _in1424314252_ '4))
                    (_weak?14290_ _e1425014287_))
               (_K1424614269_ _weak?14290_ _phi14285_ _key14280_ _source14275_))
             (_E1424514256_)))))
@@ -1424,7 +1424,7 @@
                                    _mark1418714193_
                                    'gx#expander-mark::t)
                                   (let* ((_e1419114208_
-                                          (##vector-ref _mark1418714193_ '1))
+                                          (_gx#vector-ref _mark1418714193_ '1))
                                          (_subst14211_ _e1419114208_))
                                     (_K1419014205_ _subst14211_))
                                   (_E1418914197_))))))
@@ -1446,14 +1446,14 @@
           (if (##structure-direct-instance-of?
                _out1412014130_
                'gx#module-export::t)
-              (let* ((_e1412414144_ (##vector-ref _out1412014130_ '1))
+              (let* ((_e1412414144_ (_gx#vector-ref _out1412014130_ '1))
                      (_ctx14147_ _e1412414144_)
-                     (_e1412514149_ (##vector-ref _out1412014130_ '2))
+                     (_e1412514149_ (_gx#vector-ref _out1412014130_ '2))
                      (_key14152_ _e1412514149_)
-                     (_e1412614154_ (##vector-ref _out1412014130_ '3))
+                     (_e1412614154_ (_gx#vector-ref _out1412014130_ '3))
                      (_phi14157_ _e1412614154_)
-                     (_e1412714159_ (##vector-ref _out1412014130_ '4))
-                     (_e1412814162_ (##vector-ref _out1412014130_ '5)))
+                     (_e1412714159_ (_gx#vector-ref _out1412014130_ '4))
+                     (_e1412814162_ (_gx#vector-ref _out1412014130_ '5)))
                 (_K1412314141_ _phi14157_ _key14152_ _ctx14147_))
               (_E1412214134_))))))
   (define gx#core-module-export->import__%
@@ -1477,15 +1477,15 @@
         (if (##structure-direct-instance-of?
              _out1404514055_
              'gx#module-export::t)
-            (let* ((_e1404914074_ (##vector-ref _out1404514055_ '1))
+            (let* ((_e1404914074_ (_gx#vector-ref _out1404514055_ '1))
                    (_ctx14077_ _e1404914074_)
-                   (_e1405014079_ (##vector-ref _out1404514055_ '2))
+                   (_e1405014079_ (_gx#vector-ref _out1404514055_ '2))
                    (_key14082_ _e1405014079_)
-                   (_e1405114084_ (##vector-ref _out1404514055_ '3))
+                   (_e1405114084_ (_gx#vector-ref _out1404514055_ '3))
                    (_phi14087_ _e1405114084_)
-                   (_e1405214089_ (##vector-ref _out1404514055_ '4))
+                   (_e1405214089_ (_gx#vector-ref _out1404514055_ '4))
                    (_name14092_ _e1405214089_)
-                   (_e1405314094_ (##vector-ref _out1404514055_ '5))
+                   (_e1405314094_ (_gx#vector-ref _out1404514055_ '5))
                    (_weak?14097_ _e1405314094_))
               (_K1404814071_
                _weak?14097_
@@ -2989,13 +2989,13 @@
                                        _in1279112799_
                                        'gx#module-import::t)
                                       (let* ((_e1279512813_
-                                              (##vector-ref _in1279112799_ '1))
+                                              (_gx#vector-ref _in1279112799_ '1))
                                              (_out12816_ _e1279512813_)
                                              (_e1279612818_
-                                              (##vector-ref _in1279112799_ '2))
+                                              (_gx#vector-ref _in1279112799_ '2))
                                              (_key12821_ _e1279612818_)
                                              (_e1279712823_
-                                              (##vector-ref _in1279112799_ '3))
+                                              (_gx#vector-ref _in1279112799_ '3))
                                              (_phi12826_ _e1279712823_))
                                         (_K1279412810_
                                          _phi12826_
@@ -3044,15 +3044,15 @@
                                                   _in1271412728_
                                                   'gx#import-set::t)
                                                  (let* ((_e1272012750_
-                                                         (##vector-ref
+                                                         (_gx#vector-ref
                                                           _in1271412728_
                                                           '1))
                                                         (_e1272112755_
-                                                         (##vector-ref
+                                                         (_gx#vector-ref
                                                           _in1271412728_
                                                           '2))
                                                         (_e1272212760_
-                                                         (##vector-ref
+                                                         (_gx#vector-ref
                                                           _in1271412728_
                                                           '3)))
                                                    (let ((_ctx12753_
@@ -3070,15 +3070,15 @@
                                            _in1271412728_
                                            'gx#module-import::t)
                                           (let* ((_e1272412775_
-                                                  (##vector-ref
+                                                  (_gx#vector-ref
                                                    _in1271412728_
                                                    '1))
                                                  (_e1272512780_
-                                                  (##vector-ref
+                                                  (_gx#vector-ref
                                                    _in1271412728_
                                                    '2))
                                                  (_e1272612785_
-                                                  (##vector-ref
+                                                  (_gx#vector-ref
                                                    _in1271412728_
                                                    '3)))
                                             (let ((_out12778_ _e1272412775_)

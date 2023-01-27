@@ -260,11 +260,11 @@
                   (_g12576_ (_eval-body12309_ _rbody12312_)))
              (begin
                (let ((_g12577_
-                      (if (##values? _g12576_) (##vector-length _g12576_) 1)))
+                      (if (##values? _g12576_) (_gx#vector-length _g12576_) 1)))
                  (if (not (##fx= _g12577_ 2))
                      (error "Context expects 2 values" _g12577_)))
-               (let ((_expanded-body12314_ (##vector-ref _g12576_ 0))
-                     (_value12315_ (##vector-ref _g12576_ 1)))
+               (let ((_expanded-body12314_ (_gx#vector-ref _g12576_ 0))
+                     (_value12315_ (_gx#vector-ref _g12576_ 1)))
                  (gx#core-quote-syntax__1
                   (if (##structure-instance-of?
                        (gx#current-expander-context)
@@ -917,12 +917,12 @@
                                                                (if (##values?
 ;;<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
                             _g12578_)
-                           (##vector-length _g12578_)
+                           (_gx#vector-length _g12578_)
                            1)))
                   (if (not (##fx= _g12579_ 2))
                       (error "Context expects 2 values" _g12579_)))
-                (let ((_e-stx11669_ (##vector-ref _g12578_ 0))
-                      (_e11670_ (##vector-ref _g12578_ 1)))
+                (let ((_e-stx11669_ (_gx#vector-ref _g12578_ 0))
+                      (_e11670_ (_gx#vector-ref _g12578_ 1)))
                   (begin
                     (gx#core-bind-syntax!__0 _id11657_ _e11670_)
                     (gx#core-quote-syntax__1
@@ -1468,14 +1468,14 @@
                                             (begin
                                               (let ((_g12585_
                                                      (if (##values? _g12584_)
-                                                         (##vector-length
+                                                         (_gx#vector-length
                                                           _g12584_)
                                                          1)))
                                                 (if (not (##fx= _g12585_ 2))
                                                     (error "Context expects 2 values"
                                                            _g12585_)))
                                               (let ((_e11053_
-                                                     (##vector-ref
+                                                     (_gx#vector-ref
                                                       _g12584_
                                                       1)))
                                                 _e11053_)))

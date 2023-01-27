@@ -26,10 +26,10 @@
     (make-struct-field-mutator gxc#optimizer-info::t '1))
   (define gxc#optimizer-info:::init!
     (lambda (_self16070_)
-      (if (##fx< '2 (##vector-length _self16070_))
+      (if (##fx< '2 (_gx#vector-length _self16070_))
           (begin
-            (##vector-set! _self16070_ '1 (make-table 'test: eq?))
-            (##vector-set! _self16070_ '2 (make-table 'test: eq?)))
+            (_gx#vector-set! _self16070_ '1 (make-table 'test: eq?))
+            (_gx#vector-set! _self16070_ '2 (make-table 'test: eq?)))
           (error '"struct-instance-init!: too many arguments for struct"
                  _self16070_))))
   (bind-method! gxc#optimizer-info::t ':init! gxc#optimizer-info:::init! '#f)
@@ -258,15 +258,15 @@
              _xfields15908_
              _ctor15909_
              _plist15910_)
-      (if (##fx< '7 (##vector-length _self15904_))
+      (if (##fx< '7 (_gx#vector-length _self15904_))
           (begin
-            (##vector-set! _self15904_ '1 _id15905_)
-            (##vector-set! _self15904_ '2 _super15906_)
-            (##vector-set! _self15904_ '3 _fields15907_)
-            (##vector-set! _self15904_ '4 _xfields15908_)
-            (##vector-set! _self15904_ '5 _ctor15909_)
-            (##vector-set! _self15904_ '6 _plist15910_)
-            (##vector-set! _self15904_ '7 '#f))
+            (_gx#vector-set! _self15904_ '1 _id15905_)
+            (_gx#vector-set! _self15904_ '2 _super15906_)
+            (_gx#vector-set! _self15904_ '3 _fields15907_)
+            (_gx#vector-set! _self15904_ '4 _xfields15908_)
+            (_gx#vector-set! _self15904_ '5 _ctor15909_)
+            (_gx#vector-set! _self15904_ '6 _plist15910_)
+            (_gx#vector-set! _self15904_ '7 '#f))
           (error '"struct-instance-init!: too many arguments for struct"
                  _self15904_))))
   (bind-method! gxc#!struct-type::t ':init! gxc#!struct-type:::init! '#f)
@@ -277,37 +277,37 @@
              _dispatch15751_
              _inline15752_
              _typedecl15753_)
-      (if (##fx< '5 (##vector-length _self15748_))
+      (if (##fx< '5 (_gx#vector-length _self15748_))
           (begin
-            (##vector-set! _self15748_ '1 _id15749_)
-            (##vector-set! _self15748_ '2 _arity15750_)
-            (##vector-set! _self15748_ '3 _dispatch15751_)
-            (##vector-set! _self15748_ '4 _inline15752_)
-            (##vector-set! _self15748_ '5 _typedecl15753_))
+            (_gx#vector-set! _self15748_ '1 _id15749_)
+            (_gx#vector-set! _self15748_ '2 _arity15750_)
+            (_gx#vector-set! _self15748_ '3 _dispatch15751_)
+            (_gx#vector-set! _self15748_ '4 _inline15752_)
+            (_gx#vector-set! _self15748_ '5 _typedecl15753_))
           (error '"struct-instance-init!: too many arguments for struct"
                  _self15748_))))
   (define gxc#!lambda:::init!__0
     (lambda (_self15758_ _id15759_ _arity15760_ _dispatch15761_)
       (let* ((_inline15763_ '#f) (_typedecl15765_ '#f))
-        (if (##fx< '5 (##vector-length _self15758_))
+        (if (##fx< '5 (_gx#vector-length _self15758_))
             (begin
-              (##vector-set! _self15758_ '1 _id15759_)
-              (##vector-set! _self15758_ '2 _arity15760_)
-              (##vector-set! _self15758_ '3 _dispatch15761_)
-              (##vector-set! _self15758_ '4 _inline15763_)
-              (##vector-set! _self15758_ '5 _typedecl15765_))
+              (_gx#vector-set! _self15758_ '1 _id15759_)
+              (_gx#vector-set! _self15758_ '2 _arity15760_)
+              (_gx#vector-set! _self15758_ '3 _dispatch15761_)
+              (_gx#vector-set! _self15758_ '4 _inline15763_)
+              (_gx#vector-set! _self15758_ '5 _typedecl15765_))
             (error '"struct-instance-init!: too many arguments for struct"
                    _self15758_)))))
   (define gxc#!lambda:::init!__1
     (lambda (_self15767_ _id15768_ _arity15769_ _dispatch15770_ _inline15771_)
       (let ((_typedecl15773_ '#f))
-        (if (##fx< '5 (##vector-length _self15767_))
+        (if (##fx< '5 (_gx#vector-length _self15767_))
             (begin
-              (##vector-set! _self15767_ '1 _id15768_)
-              (##vector-set! _self15767_ '2 _arity15769_)
-              (##vector-set! _self15767_ '3 _dispatch15770_)
-              (##vector-set! _self15767_ '4 _inline15771_)
-              (##vector-set! _self15767_ '5 _typedecl15773_))
+              (_gx#vector-set! _self15767_ '1 _id15768_)
+              (_gx#vector-set! _self15767_ '2 _arity15769_)
+              (_gx#vector-set! _self15767_ '3 _dispatch15770_)
+              (_gx#vector-set! _self15767_ '4 _inline15771_)
+              (_gx#vector-set! _self15767_ '5 _typedecl15773_))
             (error '"struct-instance-init!: too many arguments for struct"
                    _self15767_)))))
   (define gxc#!lambda:::init!
@@ -322,13 +322,13 @@
                                _dispatch15778_
                                _inline15779_
                                _typedecl15780_)
-                        (if (##fx< '5 (##vector-length _self15775_))
+                        (if (##fx< '5 (_gx#vector-length _self15775_))
                             (begin
-                              (##vector-set! _self15775_ '1 _id15776_)
-                              (##vector-set! _self15775_ '2 _arity15777_)
-                              (##vector-set! _self15775_ '3 _dispatch15778_)
-                              (##vector-set! _self15775_ '4 _inline15779_)
-                              (##vector-set! _self15775_ '5 _typedecl15780_))
+                              (_gx#vector-set! _self15775_ '1 _id15776_)
+                              (_gx#vector-set! _self15775_ '2 _arity15777_)
+                              (_gx#vector-set! _self15775_ '3 _dispatch15778_)
+                              (_gx#vector-set! _self15775_ '4 _inline15779_)
+                              (_gx#vector-set! _self15775_ '5 _typedecl15780_))
                             (error '"struct-instance-init!: too many arguments for struct"
                                    _self15775_)))
                       _g16075_))

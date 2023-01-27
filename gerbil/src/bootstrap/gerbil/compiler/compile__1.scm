@@ -333,11 +333,11 @@
                                                     _tl48344998_
                                                     '0)))
                                               (let ((_tl48495044_
-                                                     (##vector-ref
+                                                     (_gx#vector-ref
                                                       ___splice1443814439_
                                                       '1))
                                                     (_target48475041_
-                                                     (##vector-ref
+                                                     (_gx#vector-ref
                                                       ___splice1443814439_
                                                       '0)))
                                                 (if (gx#stx-null? _tl48495044_)
@@ -482,11 +482,11 @@
                                                           _tl48375008_
                                                           '0)))
                                                     (let ((_tl48405014_
-                                                           (##vector-ref
+                                                           (_gx#vector-ref
                                                             ___splice1443614437_
                                                             '1))
                                                           (_target48385011_
-                                                           (##vector-ref
+                                                           (_gx#vector-ref
                                                             ___splice1443614437_
                                                             '0)))
                                                       (if (gx#stx-null?

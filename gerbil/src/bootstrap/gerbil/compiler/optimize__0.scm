@@ -429,9 +429,9 @@
 ;;<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
                          (gx#syntax-split-splice _hd4871648844_ '0)))
                     (let ((_tl4873348770_
-                           (##vector-ref ___splice4911949120_ '1))
+                           (_gx#vector-ref ___splice4911949120_ '1))
                           (_target4873148768_
-                           (##vector-ref ___splice4911949120_ '0)))
+                           (_gx#vector-ref ___splice4911949120_ '0)))
                       (if (gx#stx-null? _tl4873348770_)
                           (___match4916849169_
                            _e4871248833_
@@ -453,11 +453,11 @@
                                                           _hd4871648844_
                                                           '0)))
                                                     (let ((_tl4873348770_
-                                                           (##vector-ref
+                                                           (_gx#vector-ref
                                                             ___splice4911949120_
                                                             '1))
                                                           (_target4873148768_
-                                                           (##vector-ref
+                                                           (_gx#vector-ref
                                                             ___splice4911949120_
                                                             '0)))
                                                       (if (gx#stx-null?
@@ -481,11 +481,11 @@
                                                       _hd4871648844_
                                                       '0)))
                                                 (let ((_tl4873348770_
-                                                       (##vector-ref
+                                                       (_gx#vector-ref
                                                         ___splice4911949120_
                                                         '1))
                                                       (_target4873148768_
-                                                       (##vector-ref
+                                                       (_gx#vector-ref
                                                         ___splice4911949120_
                                                         '0)))
                                                   (if (gx#stx-null?
@@ -508,11 +508,11 @@
                                               _hd4871648844_
                                               '0)))
                                         (let ((_tl4873348770_
-                                               (##vector-ref
+                                               (_gx#vector-ref
                                                 ___splice4911949120_
                                                 '1))
                                               (_target4873148768_
-                                               (##vector-ref
+                                               (_gx#vector-ref
                                                 ___splice4911949120_
                                                 '0)))
                                           (if (gx#stx-null? _tl4873348770_)
@@ -850,7 +850,7 @@
               (lambda (_alias-id48248_)
                 (cons '@alias (cons _alias-id48248_ '())))))
         (if (##structure-instance-of? _self4823548241_ 'gxc#!alias::t)
-            (let* ((_e4823948253_ (##vector-ref _self4823548241_ '1))
+            (let* ((_e4823948253_ (_gx#vector-ref _self4823548241_ '1))
                    (_alias-id48256_ _e4823948253_))
               (_K4823848250_ _alias-id48256_))
             (_E4823748245_)))))
@@ -873,16 +873,16 @@
                                         (cons _ctor48076_
                                               (cons _plist48075_ '())))))))))
         (if (##structure-instance-of? _self4805748068_ 'gxc#!struct-type::t)
-            (let* ((_e4806148084_ (##vector-ref _self4805748068_ '1))
+            (let* ((_e4806148084_ (_gx#vector-ref _self4805748068_ '1))
                    (_type-id48087_ _e4806148084_)
-                   (_e4806248089_ (##vector-ref _self4805748068_ '2))
+                   (_e4806248089_ (_gx#vector-ref _self4805748068_ '2))
                    (_super48092_ _e4806248089_)
-                   (_e4806348094_ (##vector-ref _self4805748068_ '3))
+                   (_e4806348094_ (_gx#vector-ref _self4805748068_ '3))
                    (_fields48097_ _e4806348094_)
-                   (_e4806448099_ (##vector-ref _self4805748068_ '4))
-                   (_e4806548102_ (##vector-ref _self4805748068_ '5))
+                   (_e4806448099_ (_gx#vector-ref _self4805748068_ '4))
+                   (_e4806548102_ (_gx#vector-ref _self4805748068_ '5))
                    (_ctor48105_ _e4806548102_)
-                   (_e4806648107_ (##vector-ref _self4805748068_ '6))
+                   (_e4806648107_ (_gx#vector-ref _self4805748068_ '6))
                    (_plist48110_ _e4806648107_))
               (_K4806048081_
                _plist48110_
@@ -901,7 +901,7 @@
               (lambda (_struct-t47924_)
                 (cons '@struct-pred (cons _struct-t47924_ '())))))
         (if (##structure-instance-of? _self4791147917_ 'gxc#!struct-pred::t)
-            (let* ((_e4791547929_ (##vector-ref _self4791147917_ '1))
+            (let* ((_e4791547929_ (_gx#vector-ref _self4791147917_ '1))
                    (_struct-t47932_ _e4791547929_))
               (_K4791447926_ _struct-t47932_))
             (_E4791347921_)))))
@@ -915,7 +915,7 @@
               (lambda (_struct-t47778_)
                 (cons '@struct-cons (cons _struct-t47778_ '())))))
         (if (##structure-instance-of? _self4776547771_ 'gxc#!struct-cons::t)
-            (let* ((_e4776947783_ (##vector-ref _self4776547771_ '1))
+            (let* ((_e4776947783_ (_gx#vector-ref _self4776547771_ '1))
                    (_struct-t47786_ _e4776947783_))
               (_K4776847780_ _struct-t47786_))
             (_E4776747775_)))))
@@ -931,11 +931,11 @@
                       (cons _struct-t47622_
                             (cons _off47621_ (cons _unchecked?47620_ '())))))))
         (if (##structure-instance-of? _self4760547613_ 'gxc#!struct-getf::t)
-            (let* ((_e4760947627_ (##vector-ref _self4760547613_ '1))
+            (let* ((_e4760947627_ (_gx#vector-ref _self4760547613_ '1))
                    (_struct-t47630_ _e4760947627_)
-                   (_e4761047632_ (##vector-ref _self4760547613_ '2))
+                   (_e4761047632_ (_gx#vector-ref _self4760547613_ '2))
                    (_off47635_ _e4761047632_)
-                   (_e4761147637_ (##vector-ref _self4760547613_ '3))
+                   (_e4761147637_ (_gx#vector-ref _self4760547613_ '3))
                    (_unchecked?47640_ _e4761147637_))
               (_K4760847624_ _unchecked?47640_ _off47635_ _struct-t47630_))
             (_E4760747617_)))))
@@ -951,11 +951,11 @@
                       (cons _struct-t47462_
                             (cons _off47461_ (cons _unchecked?47460_ '())))))))
         (if (##structure-instance-of? _self4744547453_ 'gxc#!struct-setf::t)
-            (let* ((_e4744947467_ (##vector-ref _self4744547453_ '1))
+            (let* ((_e4744947467_ (_gx#vector-ref _self4744547453_ '1))
                    (_struct-t47470_ _e4744947467_)
-                   (_e4745047472_ (##vector-ref _self4744547453_ '2))
+                   (_e4745047472_ (_gx#vector-ref _self4744547453_ '2))
                    (_off47475_ _e4745047472_)
-                   (_e4745147477_ (##vector-ref _self4744547453_ '3))
+                   (_e4745147477_ (_gx#vector-ref _self4744547453_ '3))
                    (_unchecked?47480_ _e4745147477_))
               (_K4744847464_ _unchecked?47480_ _off47475_ _struct-t47470_))
             (_E4744747457_)))))
@@ -978,14 +978,14 @@
                     (cons '@lambda
                           (cons _arity47291_ (cons _dispatch47290_ '())))))))
         (if (##structure-instance-of? _self4727147281_ 'gxc#!lambda::t)
-            (let* ((_e4727547299_ (##vector-ref _self4727147281_ '1))
-                   (_e4727647302_ (##vector-ref _self4727147281_ '2))
+            (let* ((_e4727547299_ (_gx#vector-ref _self4727147281_ '1))
+                   (_e4727647302_ (_gx#vector-ref _self4727147281_ '2))
                    (_arity47305_ _e4727647302_)
-                   (_e4727747307_ (##vector-ref _self4727147281_ '3))
+                   (_e4727747307_ (_gx#vector-ref _self4727147281_ '3))
                    (_dispatch47310_ _e4727747307_)
-                   (_e4727847312_ (##vector-ref _self4727147281_ '4))
+                   (_e4727847312_ (_gx#vector-ref _self4727147281_ '4))
                    (_inline47315_ _e4727847312_)
-                   (_e4727947317_ (##vector-ref _self4727147281_ '5))
+                   (_e4727947317_ (_gx#vector-ref _self4727147281_ '5))
                    (_typedecl47320_ _e4727947317_))
               (_K4727447296_
                _typedecl47320_
@@ -1009,12 +1009,12 @@
                          _clause4711447122_
                          'gxc#!lambda::t)
                         (let* ((_e4711847135_
-                                (##vector-ref _clause4711447122_ '1))
+                                (_gx#vector-ref _clause4711447122_ '1))
                                (_e4711947138_
-                                (##vector-ref _clause4711447122_ '2))
+                                (_gx#vector-ref _clause4711447122_ '2))
                                (_arity47141_ _e4711947138_)
                                (_e4712047143_
-                                (##vector-ref _clause4711447122_ '3))
+                                (_gx#vector-ref _clause4711447122_ '3))
                                (_dispatch47146_ _e4712047143_))
                           (_K4711747132_ _dispatch47146_ _arity47141_))
                         (_E4711647126_))))))
@@ -1026,8 +1026,8 @@
                   (let ((_clauses47100_ (map _clause-e47083_ _clauses47098_)))
                     (cons '@case-lambda _clauses47100_)))))
           (if (##structure-instance-of? _self4708447091_ 'gxc#!case-lambda::t)
-              (let* ((_e4708847105_ (##vector-ref _self4708447091_ '1))
-                     (_e4708947108_ (##vector-ref _self4708447091_ '2))
+              (let* ((_e4708847105_ (_gx#vector-ref _self4708447091_ '1))
+                     (_e4708947108_ (_gx#vector-ref _self4708447091_ '2))
                      (_clauses47111_ _e4708947108_))
                 (_K4708747102_ _clauses47111_))
               (_E4708647095_))))))
@@ -1042,10 +1042,10 @@
                 (cons '@kw-lambda
                       (cons _table46941_ (cons _dispatch46940_ '()))))))
         (if (##structure-instance-of? _self4692546933_ 'gxc#!kw-lambda::t)
-            (let* ((_e4692946946_ (##vector-ref _self4692546933_ '1))
-                   (_e4693046949_ (##vector-ref _self4692546933_ '2))
+            (let* ((_e4692946946_ (_gx#vector-ref _self4692546933_ '1))
+                   (_e4693046949_ (_gx#vector-ref _self4692546933_ '2))
                    (_table46952_ _e4693046949_)
-                   (_e4693146954_ (##vector-ref _self4692546933_ '3))
+                   (_e4693146954_ (_gx#vector-ref _self4692546933_ '3))
                    (_dispatch46957_ _e4693146954_))
               (_K4692846943_ _dispatch46957_ _table46952_))
             (_E4692746937_)))))
@@ -1062,10 +1062,10 @@
         (if (##structure-instance-of?
              _self4676846776_
              'gxc#!kw-lambda-primary::t)
-            (let* ((_e4677246789_ (##vector-ref _self4676846776_ '1))
-                   (_e4677346792_ (##vector-ref _self4676846776_ '2))
+            (let* ((_e4677246789_ (_gx#vector-ref _self4676846776_ '1))
+                   (_e4677346792_ (_gx#vector-ref _self4676846776_ '2))
                    (_keys46795_ _e4677346792_)
-                   (_e4677446797_ (##vector-ref _self4676846776_ '3))
+                   (_e4677446797_ (_gx#vector-ref _self4676846776_ '3))
                    (_main46800_ _e4677446797_))
               (_K4677146786_ _main46800_ _keys46795_))
             (_E4677046780_)))))
