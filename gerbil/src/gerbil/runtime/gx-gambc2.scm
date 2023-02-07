@@ -3,7 +3,10 @@
 ;;; Gerbil stage0 -- Gambit-C host compiler
 (##namespace (""))
 ;; (include "gx-gambc#.scm")
-
+(define (_dbug . a) (let d ((t a))
+                     (display (car  t)) (display " ")
+                     (if (not (null? (cdr t)))
+                         (d (cdr t)) (newline))))
 (declare
   (block)
   (standard-bindings)
@@ -81,19 +84,24 @@
   `(_gx#vector-ref ,obj 1))
 
 (define (_gx#compile stx)
-  (core-ast-case stx ()
-    ((form . _)
-     (cond
-      ((&core-resolve form)
-       => (lambda (bind)
-            ((%&syntax-e bind) stx)))
-      (else
-       (_gx#raise-syntax-error #f "Bad syntax" stx form))))))
+  ;; (_dbug "In _gx#compile" stx)
+  (core-ast-case
+   stx ()
+   ((form . _)
+    (cond
+     ((&core-resolve form)
+      => (lambda (bind)
+           ;; (_dbug "resolved as " bind (%&syntax-e bind))
+           ((%&syntax-e bind) stx)))
+     (else
+      (_gx#raise-syntax-error #f "Bad syntax" stx form))))))
 
 (define (_gx#compile-error stx #!optional (detail #f))
   (_gx#raise-syntax-error 'compile "Bad syntax; cannot compile" stx detail))
 
 (define (_gx#compile-ignore% stx)
+  ;; (_dbug "In compile-ignore, making src")
+  ;; (_gx#pp-syntax stx)
   (&SRC '(##void) stx))
 
 (define (_gx#compile-begin% stx)

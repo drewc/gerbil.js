@@ -1,6 +1,6 @@
 (declare (block) (standard-bindings) (extended-bindings))
 (begin
-  (declare (not safe))
+ ;; (declare (not safe))
   (define gx#*core-syntax-expanders*
     (cons (cons '%#begin
                 (cons 'top:

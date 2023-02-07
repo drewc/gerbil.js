@@ -7,7 +7,7 @@ namespace: gx
 
 (export #t)
 (import "common" "stx")
-(declare (not safe))
+;; (declare (not safe))
 
 ;;; expander environment
 (def current-expander-context

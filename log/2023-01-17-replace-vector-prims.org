@@ -760,10 +760,6 @@ Well that's new! It seems to be an off by one error.
         cd $GERBIL_SRC/src/ && ./build.sh gxi
         cd $GERBIL_SRC/src/ && ./build.sh stage0
  #+end_src
-
-
-
-
 #+begin_src sh :results verbatim :wrap example
     export GERBIL_SRC=../gerbil
     export GERBIL_GSI=$GERBIL_SRC/src/gerbil/gsi-js

@@ -1,8 +1,9 @@
 (declare (block) (standard-bindings) (extended-bindings))
 (begin
-  (declare (not safe))
+ ;; (declare (not safe))
   (define gx#core-expand-begin%
     (lambda (_stx12553_)
+      ;; (_dbug "Expand Begin")
       (letrec ((_expand-special12555_
                 (lambda (_hd12557_ _K12558_ _rest12559_ _r12560_)
                   (_K12558_

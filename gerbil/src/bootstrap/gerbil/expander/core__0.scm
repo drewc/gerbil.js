@@ -1,6 +1,10 @@
 (declare (block) (standard-bindings) (extended-bindings))
+(define (_dbg . a) (let d ((t a))
+                     (display (car  t)) (display " ")
+                     (if (not (null? (cdr t)))
+                         (d (cdr t)) (newline))))
 (begin
-  (declare (not safe))
+ ;; (declare (not safe))
   (define gx#current-expander-context (make-parameter '#f))
   (define gx#current-expander-marks (make-parameter '()))
   (define gx#current-expander-phi (make-parameter '0))
@@ -706,6 +710,9 @@
                 _g9347_))))))
   (define gx#eval-syntax*
     (lambda (_stx8944_)
+      #;(_dbg "In Eval Syntax*" (gx#current-expander-compile)
+            '((gx#current-expander-compile) _stx8944_))
+      ;; (_dbg "eval:" (gx#current-expander-eval))
       ((gx#current-expander-eval) ((gx#current-expander-compile) _stx8944_))))
   (define gx#core-expand__%
     (lambda (_stx8931_ _expression?8932_)
@@ -718,6 +725,7 @@
         (gx#core-expand__% _stx8937_ _expression?8939_))))
   (define gx#core-expand
     (lambda _g9349_
+      ;; (_dbg "In Core Expend!")
       (let ((_g9348_ (length _g9349_)))
         (cond ((##fx= _g9348_ 1) (apply gx#core-expand__0 _g9349_))
               ((##fx= _g9348_ 2) (apply gx#core-expand__% _g9349_))
@@ -1875,12 +1883,14 @@
                   (let* ((_hd7081_ _hd70297076_) (_rest7083_ _tl70307078_))
                     (_K70287073_ _rest7083_ _hd7081_)))
                 (_else70267040_)))))))
+  (define gx#core-bind-debug-args '())
   (define gx#core-bind!__%
     (lambda (_key6887_ _val6888_ _rebind?6889_ _phi6890_ _ctx6891_)
-
-      ;; (error "core bond" _key6887_ _val6888_ _rebind?6889_ _phi6890_ _ctx6891_)
+      (set! gx#core-bind-debug-args
+            (cons (list _key6887_ _val6888_ _rebind?6889_ _phi6890_ _ctx6891_) gx#core-bind-debug-args))
       (letrec ((_update-binding6893_
                 (lambda (_xval6964_)
+                  #;(_dbug "In Update Binding")
                   (if (or (_rebind?6889_ _ctx6891_ _xval6964_ _val6888_)
                           (and (##structure-direct-instance-of?
                                 _xval6964_
@@ -2006,8 +2016,6 @@
                                              _mark69196925_)))
                                    (_K69226939_
                                     (lambda (_subst6932_)
-                                      ;; (display "here")
-                                      ;; (newline)
                                       (if (not _subst6932_)
                                           (let ((_subst6934_
                                                  (make-table 'test: eq?)))
@@ -2038,6 +2046,8 @@
                                          (_subst6945_ _e69236942_))
                                     (_K69226939_ _subst6945_))
                                   (_E69216929_))))))
+                    #;(_dbug "At the end of subst")
+
                     (if (##pair? _key68986906_)
                         (let ((_hd69036950_ (##car _key68986906_))
                               (_tl69046952_ (##cdr _key68986906_)))
@@ -2045,11 +2055,11 @@
                                  (_mark6957_ _tl69046952_))
                             (_K69026947_ _mark6957_ _id6955_)))
                         (_else69006914_))))))
-        (gx#core-context-bind!
-         (gx#core-context-shift _ctx6891_ _phi6890_)
-         (_subst!6895_ _key6887_)
-         _val6888_
-         _update-binding6893_))))
+        (let ((cxt (gx#core-context-shift _ctx6891_ _phi6890_))
+              (subst (_subst!6895_ _key6887_)))
+          (gx#core-context-bind! cxt subst
+                                 _val6888_
+                                 _update-binding6893_)))))
   (define gx#core-bind!__0
     (lambda (_key6981_ _val6982_)
       (let* ((_rebind?6984_ false)
@@ -2222,8 +2232,6 @@
                   _ctx6776_))))))
   (define gx#core-context-get
     (lambda (_ctx6763_ _key6764_)
-
-      ;; (display "context-get" _ctx6763_)  (newline)
       (table-ref
        (##unchecked-structure-ref _ctx6763_ '2 gx#expander-context::t '#f)
        _key6764_

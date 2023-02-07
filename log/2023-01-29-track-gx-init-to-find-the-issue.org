@@ -1,0 +1,136 @@
+#+title: Track gx-init to find the issue
+#+date: <2023-01-29 14:48>
+#+description: Track down the most recent error by following the init
+#+filetags: gerbil javascript gambit scheme js
+
+* Starting Build, and the issue
+
+
+#+begin_src sh :results verbatim :wrap example
+  export gxjsHOME=$(cd .. && pwd)
+  export GERBIL_GSC=$gxjsHOME/gambit/gsc/gsc
+  export GERBIL_SRC=$gxjsHOME/gerbil
+  export GAMBIT_SRC=$gxjsHOME/gambit
+  echo  # Build Gerbil Stage 0
+  cd $GERBIL_SRC/src/ && ./build.sh gxi
+  cd $GERBIL_SRC/src/ && ./build.sh stage0
+
+  # / #+ end_src
+
+
+  # / #+begin_src sh :results verbatim :wrap example :session gx-init-log
+  # Build our own `gsi`
+  cd $GERBIL_SRC/src/gerbil && \
+        $GAMBIT_SRC/gsc/gsc -target js -exe -o gsi-js ./gsi-js.scm
+
+  export GERBIL_HOME=$GERBIL_SRC/bootstrap
+  export GERBIL_GSI=$GERBIL_SRC/src/gerbil/gsi-js
+
+    $GERBIL_HOME/bin/gxi -e '(display* "The Answer to LTUAE is?" 42)' 2>&1 || true
+#+end_src
+
+#+RESULTS:
+#+begin_example
+,*** ERROR IN gx#core-bind!__% -- (Argument 1) Instance of #<type #2 table> expected
+(table-ref 'phi-context 'runtime-type-exhibitor-e #f)
+>
+,*** EOF again to exit
+#+end_example
+
+That ended up being an error I made. When and an object was a vector turned struct the unset values were all ~#f~. We ended up with them all being "undefined", or actually the type object that it became.
+
+That doesn't work, so back to false!
+
+#+begin_src sh :results verbatim :wrap src diff
+  git diff ../gerbil/src/gerbil/runtime/gx-gambc0.scm
+#+end_src
+
+#+RESULTS:
+#+begin_src diff
+diff --git a/gerbil/src/gerbil/runtime/gx-gambc0.scm b/gerbil/src/gerbil/runtime/gx-gambc0.scm
+index 2e66ba59..cccd5dda 100644
+--- a/gerbil/src/gerbil/runtime/gx-gambc0.scm
++++ b/gerbil/src/gerbil/runtime/gx-gambc0.scm
+@@ -588,7 +588,13 @@
+ (define direct-class-instance?
+   direct-instance?)
+
+-(define (make-object klass k) (%%make-structure klass (%%fx+ k 1)))
++(define (make-object klass k)
++  (let ((obj (%%make-structure klass (%%fx+ k 1))))
++    (let effoff ((n 1))
++      (if (= n k) obj
++          (begin
++            (##unchecked-structure-set! obj #f n klass make-object)
++            (effoff (+ 1 n)))))))
+
+ (define (make-struct-instance klass . args)
+   (let ((fields (type-descriptor-fields klass)))
+#+end_src
+
+
+* What is ~gxi~?
+
+To track down exactly where that error was happening and gain some know-how along the way we'll look at gxi.
+
+We start at the [[file:~/me/MuKn/src/gerbil.js/gerbil/src/gerbil/gxi.c][gxi c shim]].
+
+It seems to be that it simply runs ~gsi~ with [[file:~/me/MuKn/src/gerbil.js/gerbil/src/gerbil/boot/gxi-init.scm::;;; -*- Gerbil -*-][gxi-init.scm]]
+
+   - which loads [[file:~/me/MuKn/src/gerbil.js/gerbil/src/gerbil/boot/gx-init.scm::define (_gx#init][gx-init]] scheme
+     - which has *(_gx#init)*
+        - set ~_gx#gerbil-libdir~ to =$GERBIL_HOME/lib= and loads the runtime and gxi.
+
+
+   - adds [[file:~/me/MuKn/src/gerbil.js/gerbil/src/gerbil/boot/gxi-interactive.scm::;;; -*- Gerbil -*-][gxi-interactive.scm]] if there are no command line arguments.
+
+     which is just one form.
+
+     #+begin_src scheme
+       (_gx#gxi-init-interactive! (command-line))
+     #+end_src
+
+So, in the shell, this:
+
+     #+begin_src sh
+       export gxjsHOME=$(cd .. && pwd) ; export GERBIL_SRC=$gxjsHOME/gerbil ; export GERBIL_HOME=$GERBIL_SRC/bootstrap ; export GERBIL_GSI=$GERBIL_SRC/src/gerbil/gsi-js
+
+         $GERBIL_HOME/bin/gxi -e '(display* "The Answer to LTUAE is?" 42)' 2>&1 || true
+     #+end_src
+: The Answer to LTUAE is?42
+
+Becomes this.
+
+     #+begin_src sh
+       gxjsHOME=$(cd .. && pwd) ; GERBIL_SRC=$gxjsHOME/gerbil ; export GERBIL_HOME=$GERBIL_SRC/bootstrap ; export GERBIL_GSI=$GERBIL_SRC/src/gerbil/gsi-js
+
+       $GERBIL_GSI $GERBIL_HOME/lib/gxi-init -e '(display* "The Answer to LTUAE is?" 42)' 2>&1
+
+     #+end_src
+     : The Answer to LTUAE is?42
+
+ What if I compile that file?
+
+
+     #+begin_src sh
+       gxjsHOME=$(cd .. && pwd) ; GERBIL_SRC=$gxjsHOME/gerbil ; export GERBIL_HOME=$GERBIL_SRC/bootstrap ; export GERBIL_GSI=$GERBIL_SRC/src/gerbil/gsi-js
+       export GERBIL_GSC=$gxjsHOME/gambit/gsc/gsc
+
+       $GERBIL_GSC -target js -exe -o ./gxi.js $GERBIL_HOME/lib/gxi-init
+
+       ./gxi.js -e '(display* "asd")'
+
+     #+end_src
+
+Cool!
+
+
+   #+begin_src scheme
+         (_gx#init!)
+         (_gx#load-expander-runtime!)
+         (_gx#load-gxi)
+         (set! gx#core-bind-debug-args (cdr gx#core-bind-debug-args))
+
+         (apply gx#core-bind!__% (car gx#core-bind-debug-args))
+
+#+end_src

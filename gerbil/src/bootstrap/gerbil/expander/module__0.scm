@@ -1,6 +1,6 @@
 (declare (block) (standard-bindings) (extended-bindings))
 (begin
-  (declare (not safe))
+  ;;;; (declare (not safe))
   (define gx#module-import::t
     (make-struct-type
      'gx#module-import::t

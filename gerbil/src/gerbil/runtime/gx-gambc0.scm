@@ -588,7 +588,13 @@
 (define direct-class-instance?
   direct-instance?)
 
-(define (make-object klass k) (%%make-structure klass (%%fx+ k 1)))
+(define (make-object klass k)
+  (let ((obj (%%make-structure klass (%%fx+ k 1))))
+    (let effoff ((n 1))
+      (if (= n k) obj
+          (begin
+            (##unchecked-structure-set! obj #f n klass make-object)
+            (effoff (+ 1 n)))))))
 
 (define (make-struct-instance klass . args)
   (let ((fields (type-descriptor-fields klass)))
@@ -715,6 +721,7 @@
    ((method-ref obj id)
     => (lambda (method) (apply method obj args)))
    (else
+   (pp  (_gx#vector->list  obj))
     (error "Cannot find method" obj id))))
 
 ;; Methods
@@ -742,7 +749,20 @@
     (lambda args
       (apply method obj args))))
 
+(define (_disp* . args) (map display args) (newline))
+(define (_dbg . a) (let d ((t a))
+                     (display (car  t)) (display " why is this ")
+                     (if (not (null? (cdr t)))
+                         (d (cdr t)) (newline))))
 (define (find-method klass id)
+
+ #;(if (equal? 'make-parameter id)
+      (begin
+        (_disp* "Finding " id " from " klass (type-descriptor? klass)
+                (%%type? klass) "\n"
+                (##table->list &builtin-type-methods)
+                "\n")
+        ))
   (cond
    ((type-descriptor? klass)
     (&find-method klass id))
@@ -752,6 +772,12 @@
    (else #f)))
 
 (define (&find-method klass id)
+  (if (equal? 'make-parameter id)
+      (begin
+        (_disp* "&find-method" klass id "\n"
+                (##table->list  (type-descriptor-methods klass))
+              )
+        ))
   (cond
    ((direct-method-ref klass id)
     => values)
@@ -792,6 +818,8 @@
            (builtin-find-method (%%type-super klass) id))))
 
 (define (direct-method-ref klass id)
+  #;(if (equal? id 'make-parameter)
+      (_disp* (table->list (type-descriptor-methods klass))))
   (cond
    ((type-descriptor-methods klass)
     => (lambda (ht) (hash-get ht id)))
@@ -1715,8 +1743,9 @@
            (core-match hd-rest
              ((val . rest)
               (when kwt
-                (let ((pos (%%fxmodulo (keyword-hash hd) (%%structor-length kwt))))
-                  (unless (eq? hd (%%structor-ref kwt pos))
+                (let ((pos (%%fxmodulo (keyword-hash hd)
+                                       (%%vector-length kwt))))
+                  (unless (eq? hd (%%vector-ref kwt pos))
                     (error "Unexpected keyword argument" K hd))))
               (when (hash-key? keys hd)
                 (error "Duplicate keyword argument" K hd))

@@ -1,0 +1,203 @@
+#+title: Build up from Bootstrap
+#+date: <2023-02-03 11:53>
+#+description: Building the rest of gerbil from our bootstrap
+#+filetags: Gerbil Gambit JavaScript Scheme
+
+* Thus far we got
+
+This is what we have so far.
+
+#+begin_src sh :results verbatim :wrap example :session gx-build-bootstrap
+  export gxjsHOME=$(cd .. && pwd)
+  export GERBIL_GSC=$gxjsHOME/gambit/gsc/gsc
+  export GERBIL_SRC=$gxjsHOME/gerbil
+  export GAMBIT_SRC=$gxjsHOME/gambit
+
+  echo  # Build Gerbil Stage 0
+  cd $GERBIL_SRC/src/ && ./build.sh gxi
+  cd $GERBIL_SRC/src/ && ./build.sh stage0
+
+  # Build our own `gsi`
+  cd $GERBIL_SRC/src/gerbil && \
+        $GAMBIT_SRC/gsc/gsc -target js -exe -o gsi-js ./gsi-js.scm
+
+  export GERBIL_HOME=$GERBIL_SRC/bootstrap
+  export GERBIL_GSI=$GERBIL_SRC/src/gerbil/gsi-js
+
+    $GERBIL_HOME/bin/gxi -e '(display* "The Answer to LTUAE is?" 42)' 2>&1 || true
+#+end_src
+* Build Gerbil with Gerbil: =stage1=
+
+As luck would have it we basically just have to run one file in our new ~gxi~.
+
+And, just like =stage0=, it's a simple change.
+#+begin_src scheme :noweb-ref compile1
+      (def (compile1 modf debug optimize? gen-ssxi? static?)
+        (displayln "... compile " modf)
+        (compile-file modf [output-dir: gerbil-libdir invoke-gsc: #t
+                            debug: debug optimize: optimize? generate-ssxi: gen-ssxi? static: static?
+                            gsc-options: [ "-target" "js"
+                                          ;; "-cc-options" "--param max-gcse-memory=300000000"
+                                         ]]))
+#+end_src
+
+#+begin_src sh :results verbatim :wrap example :session gx-build-bootstrap
+  cd $GERBIL_SRC/src/ && ./build.sh stage1
+#+end_src
+
+It errors out.
+#+begin_quote
+>>> compiling gerbil core
+,*** ERROR IN _gx#compile-top-source -- Cannot find method #<top-special-form #2> make-parameter
+> *** ERROR IN _gx#compile-top-source -- Syntax Error
+,*** ERROR IN (console)@1.1
+--- Syntax Error: Reference to unbound identifier
+... form:   (%#ref echo)
+... detail: echo at (console)@1.1
+> *** ERROR IN _gx#compile-top-source -- Cannot find method #<expression-form #3> make-parameter
+> ,b
+0  _gx#compile-top-source
+1  gx#eval-syntax*
+2  ##force-out-of-line
+3  _gx#eval-import
+4  (interaction)           "../bootstrap/lib/gerbil/compiler/driver.ssi"@5:10 .
+5  ##force-out-of-line
+6  _gx#eval-import
+7  (interaction)           "../bootstrap/lib/gerbil/compiler.ssi"@5:10 (_gx#...
+8  ##force-out-of-line
+9  _gx#eval-import
+10 (interaction)           "build/build1.ss"@2:1   (_gx#eval-import '(#<impo...
+11 ##load
+12 ##load
+13 ##main-gsi/gsc
+>
+#+end_quote
+
+That simply means that our compiler runtime is not quite right.
+
+
+To try an track it down we go through the steps and figure out why there's not a method.
+
+ 1) _gx#compile-top-source
+   [[file:~/me/MuKn/src/gerbil.js/gerbil/src/gerbil/runtime/gx-gambc.scm::define (_gx#compile-top stx][Here in gx-gambc]]
+    #+begin_src scheme
+(define (_gx#compile-top stx)
+  (_gx#compile (gx#core-compile-top-syntax stx)))
+    #+end_src
+
+
+ 1) gx#core-compile-top-syntax
+
+    [[file:~/me/MuKn/src/gerbil.js/gerbil/src/bootstrap/gerbil/expander/compile__0.scm::(define gx#core-compile-top-syntax][expander/compile__0]]
+
+    What this really does is call gx#core-expander::compile-top-syntax
+
+    That itself is a method, or in the bootstrap the expansion of how a method is declared and a binding /File/ =src/build/build1.ss=
+
+    But for us it calls  gx#core-compile-top-extern%
+
+    All the seems to do is cons ~(cons '%#extern _body16791_)~
+
+ 2) [ ] In Eval Syntax* #<procedure #3084 _gx#compile-top-source>
+
+
+ Let's get rid of safety
+
+
+#+begin_src sh :results verbatim :wrap example
+  export GERBIL_SRC=~/me/MuKn/src/gerbil.js/gerbil
+  StarSed() {
+      echo "s/ (declare (not safe)/;; (declare (not safe)/"
+  }
+  cd $GERBIL_SRC/src/bootstrap/
+  find . -name "*.scm" -exec sed -i "$(StarSed)" {} \;
+#+end_src
+
+#+RESULTS:
+#+begin_example
+#+end_example
+
+#+HEADER: :tangle ../gerbil/src/build/build1.ss
+#+begin_src scheme :noweb yes
+   ;; -*- Gerbil -*-
+   (import :gerbil/compiler)
+
+   ;;(include "../gerbil/runtime/build-lib.scm") ;; Do everything serially for now.
+
+   (def gerbil-modules-expander
+     '("gerbil/expander/common.ss"
+       "gerbil/expander/stx.ss"
+       "gerbil/expander/core.ss"
+       "gerbil/expander/top.ss"
+       "gerbil/expander/module.ss"
+       "gerbil/expander/compile.ss"
+       "gerbil/expander/root.ss"
+       "gerbil/expander/stxcase.ss"
+       "gerbil/expander.ss"))
+
+   (def gerbil-modules-compiler
+     '("gerbil/compiler/base.ss"
+       "gerbil/compiler/compile.ss"
+       "gerbil/compiler/optimize-base.ss"
+       "gerbil/compiler/optimize-xform.ss"
+       "gerbil/compiler/optimize-top.ss"
+       "gerbil/compiler/optimize-spec.ss"
+       "gerbil/compiler/optimize-ann.ss"
+       "gerbil/compiler/optimize-call.ss"
+       "gerbil/compiler/optimize.ss"
+       "gerbil/compiler/driver.ss"
+       "gerbil/compiler/ssxi.ss"
+       "gerbil/compiler.ss"))
+
+   (def gerbil-prelude-core
+     '("gerbil/prelude/core.ss"))
+
+   (def gerbil-prelude-gambit
+     '("gerbil/prelude/gambit/ports.ss"
+       "gerbil/prelude/gambit/bytes.ss"
+       "gerbil/prelude/gambit/misc.ss"
+       "gerbil/prelude/gambit/random.ss"
+       "gerbil/prelude/gambit/continuations.ss"
+       "gerbil/prelude/gambit/os.ss"
+       "gerbil/prelude/gambit/exceptions.ss"
+       "gerbil/prelude/gambit/threads.ss"
+       "gerbil/prelude/gambit/bits.ss"
+       "gerbil/prelude/gambit/system.ss"
+       "gerbil/prelude/gambit/foreign.ss"
+       "gerbil/prelude/gambit/hash.ss"
+       "gerbil/prelude/gambit/readtables.ss"
+       "gerbil/prelude/gambit/fixnum.ss"
+       "gerbil/prelude/gambit/flonum.ss"
+       "gerbil/prelude/gambit/exact.ss"
+       "gerbil/prelude/gambit.ss"))
+
+
+   (def gerbil-libdir
+     (path-expand "lib" (getenv "GERBIL_TARGET")))
+
+   <<compile1>>
+
+   (def (compile-group group . options) ;; TODO: parallelize this?
+     ;; TODO: parallelize, but with the correct dependencies -- instead of "false",
+     ;; the on-success function will queue those modules whose dependencies are done.
+     ;;(parallel-build group (lambda (x) (apply compile1 x options)) false)
+     (for-each (lambda (x) (apply compile1 x options)) group))
+
+   (def debug-none #f)  ; no bloat
+   (def debug-src 'src) ; full introspection -- sadly, it adds bloat and increases load time
+
+   (displayln "building gerbil in " gerbil-libdir)
+   ;; initialize optimizer and preload core.ssxi so that we have core visibility
+   (gxc#optimizer-info-init!)
+    (display "load code ssxi.ss")
+   (gx#import-module "gerbil/prelude/core.ssxi.ss" #t #t)
+   ;; compile expander first so that prelude macros have expander visibility; no static
+ ;  (compile-group gerbil-modules-expander debug-none #t #t #f)
+   ;; compile core prelude; don't clobber core.ssxi
+  ; (compile-group gerbil-prelude-core debug-none #t #f #t)
+   ;; compile gambit prelude
+  ; (compile-group gerbil-prelude-gambit debug-none #t #t #t)
+   ;; compile compiler; no static
+   ;(compile-group gerbil-modules-compiler debug-none #t #t #f)
+
+#+end_src
