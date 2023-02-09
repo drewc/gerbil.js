@@ -16,9 +16,9 @@
 (define (update-gx-version)
   (let* ((gx-version-path "gx-version.scm")
          (git-version
-          (and (file-exists? "../../../.git")
+          (and (file-exists? "../../../../.git")
                (with-exception-catcher
-                (lambda (e) #f)
+                (lambda (e) "F00JS")
                 (lambda ()
                   (let* ((proc (open-process '(path: "git" arguments: ("describe" "--tags" "--always")
                                                      show-console: #f)))
