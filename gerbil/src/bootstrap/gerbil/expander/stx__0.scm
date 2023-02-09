@@ -1,6 +1,6 @@
 (declare (block) (standard-bindings) (extended-bindings))
 (begin
- ;; (declare (not safe))
+  (declare (safe))
   (define gx#&AST-e (make-struct-field-unchecked-accessor AST::t '0))
   (define gx#&AST-source (make-struct-field-unchecked-accessor AST::t '1))
   (define gx#identifier-wrap::t

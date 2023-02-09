@@ -7,7 +7,7 @@ namespace: gx
 
 (export #t)
 (import "common" "stx")
-;; (declare (not safe))
+(declare (safe))
 
 ;;; expander environment
 (def current-expander-context
@@ -620,7 +620,7 @@ namespace: gx
   (gerbil-core
    (defrules &phi-context? ()
      ((_ ctx)
-      (fx> (##vector-length ctx) 3))))
+      (fx> (_gx#vector-length ctx) 3))))
   (else
    (def &phi-context? phi-context?)))
 

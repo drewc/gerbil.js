@@ -1,6 +1,8 @@
-(declare (block) (standard-bindings) (extended-bindings))
+(declare (block) (standard-bindings) (extended-bindings)
+         ;; (debug) (debug-location) (debug-source) (debug-environments)
+         )
 (begin
-  ;;;; (declare (not safe))
+  (declare (safe))
   (define gx#module-import::t
     (make-struct-type
      'gx#module-import::t
@@ -207,8 +209,7 @@
     (make-class-predicate gx#import-export-expander::t))
   (define gx#make-import-export-expander
     (lambda _$args15955_
-      (apply make-class-instance gx#import-export-expander::t _$args15955_)))
-  (define gx#current-import-expander-phi (make-parameter '#f))
+      (apply make-class-instance gx#import-export-expander::t _$args15955_))) (define gx#current-import-expander-phi (make-parameter '#f))
   (define gx#current-export-expander-phi (make-parameter '#f))
   (define gx#current-module-reader-path (make-parameter '#f))
   (define gx#current-module-reader-args (make-parameter '#f))
@@ -655,15 +656,34 @@
                (##raise-wrong-number-of-arguments-exception
                 gx#core-import-module
                 _g16021_))))))
+  (define gx#dbug-read-modules '())
+  (define (gx#dbug-start-read-module path)
+    (set! gx#dbug-read-modules
+          (cons (cons path #f) gx#dbug-read-modules)))
+
+  (define (gx#dbug-end-read-module path res)
+    (let e ((mods gx#dbug-read-modules))
+      (if (eq? (car (car mods)) path)
+          (set-cdr! (car mods) res)
+          (if (null? (cdr mods))
+              (error "Read Module WTF?" path res)
+              (e (cdr mods))))))
+
   (define gx#core-read-module
-    (lambda (_path14841_)
-      (with-exception-catcher
-       (lambda (_exn14843_)
-         (if (and (datum-parsing-exception? _exn14843_)
-                  (eq? (datum-parsing-exception-filepos _exn14843_) '0))
-             (gx#core-read-module/lang _path14841_)
-             (raise _exn14843_)))
-       (lambda () (gx#core-read-module/sexp _path14841_)))))
+    (lambda (path)
+      (gx#dbug-start-read-module path)
+      (let* ((res 'sexp)
+             (mod
+              (with-exception-catcher
+               (lambda (_exn14843_)
+                 (if (and (datum-parsing-exception? _exn14843_)
+                          (eq? (datum-parsing-exception-filepos _exn14843_) '0))
+                     (begin (set! res 'lang)
+                            (gx#core-read-module/lang path))
+                     (raise _exn14843_)))
+               (lambda () (gx#core-read-module/sexp path)))))
+        (gx#dbug-end-read-module path res)
+        mod)))
   (define gx#core-read-module/sexp
     (lambda (_path14701_)
       (let _lp14703_ ((_body14705_ (read-syntax-from-file _path14701_))

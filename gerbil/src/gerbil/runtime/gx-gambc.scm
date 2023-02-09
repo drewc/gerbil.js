@@ -5,10 +5,9 @@
 ;;(include "gx-gambc#.scm")
 
 (declare
- (block)
- (standard-bindings)
- (extended-bindings)
- (safe))
+  (block)
+  (standard-bindings)
+  (extended-bindings))
 
 (define __gx#default-gerbil-home #f)
 
@@ -205,27 +204,12 @@
      ((box? e)
       (box (recur (unbox e))))
      (else e))))
+
 (define (_gx#compile-top-source stx)
-  (_dbug "Compiling top source " stx)
   (cons __noexpand: (_gx#compile-top stx)))
-;; (##trace _gx#compile-top-source)
 
 (define (_gx#compile-top stx)
-  (_dbg "Now in compile top" gx#core-compile-top-syntax)
-
-               (##force-output)
-  (let ((%stx
-         (with-exception-catcher
-          (lambda (c)
-            (display* "Error for stnrax like :\n\t" )
-            (_gx#pp-syntax stx)
-            (##force-output) (step)
-            (gx#core-compile-top-syntax stx))
-          (lambda () (gx#core-compile-top-syntax stx)))))
-   (_dbug "Core Compiled Syntax " %stx)
-
-    (##force-output)
-    (_gx#compile %stx)))
+  (_gx#compile (gx#core-compile-top-syntax stx)))
 
 (define (_gx#eval-import in)
   (define mods (make-hash-table-eq))

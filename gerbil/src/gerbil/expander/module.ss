@@ -7,7 +7,7 @@ namespace: gx
 
 (export #t)
 (import "common" "stx" "core" "top")
-(declare (not safe))
+(declare (safe))
 
 (defstruct module-import (source name phi weak?)
   id: gx#module-import::t

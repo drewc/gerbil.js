@@ -7,7 +7,7 @@ namespace: gx
 
 (export #t)
 (import "common" "stx" "core")
-(declare (not safe))
+(declare (safe))
 
 ;;; blocks
 ;; (%#begin <form> ...)

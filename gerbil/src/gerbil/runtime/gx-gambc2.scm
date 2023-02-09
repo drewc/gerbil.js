@@ -3,61 +3,22 @@
 ;;; Gerbil stage0 -- Gambit-C host compiler
 (##namespace (""))
 ;; (include "gx-gambc#.scm")
-(define (_dbug . a) (let d ((t a))
-                     (display (car  t)) (display " ")
-                     (if (not (null? (cdr t)))
-                         (d (cdr t)) (newline))))
+
 (declare
   (block)
   (standard-bindings)
   (extended-bindings))
-;; (declare (not safe))
-
-;; shims to make things vectors
-(define (_gx#vector-ref svs n)
-  (if (##structure? svs)
-      (##unchecked-structure-ref svs n ##type-type _gx#vector-ref)
-      (if (##values? svs)
-          (##values-ref svs n)
-          (if (##vector? svs)
-           (##vector-ref svs n)
-           (error "Tried _gx#vector-ref on a non-vector/struct/values: " svs)))))
-(define (_gx#vector-set! svs i value)
-  (if (##structure? svs)
-      (##unchecked-structure-set!
-       svs value i ##type-type _gx#vector-set!)
-      (if (##values? svs)
-          (##values-set! svs i value)
-          (if (##vector? svs)
-           (##vector-set! svs i value)
-           (error "Tried _gx#vector-set! on a non-vector/struct/values: " svs)))))
-(define (_gx#vector-length svs)
-  (if (##structure? svs) (##structure-length svs)
-      (if (##values? svs) (##values-length svs)
-          (if (##vector? svs) (##vector-length svs)
-           (error "Tried _gx#vector-length on a non-vector/struct/values: " svs)))))
-(define (_gx#vector->list svs)
-  (if (##vector? svs)
-      (##vector->list svs)
-      (if (##structure? svs)
-          (let ((end (##structure-length svs)))
-            (let sl ((n 0))
-              (if (= n end) '()
-                  (cons (##unchecked-structure-ref
-                         svs n ##type-type _gx#vector->list)
-                        (sl (+ 1 n))))))
-          (if (##values? svs) (##values->list svs)
-              (error "Tried _gx#vector->list on a non-vector/struct/values: " svs)))))
+(declare (safe))
 
 ;; core [top] syntax -> gambit runtime compiler
 (define-macro (%AST? e)
   `(##structure-instance-of? ,e 'gerbil#AST::t))
 
 (define-macro (%AST-e e)
-  `(##unchecked-structure-ref ,e 1 AST::t #f))
+  `(_gx#vector-ref ,e 1))
 
 (define-macro (%AST-source e)
-  `(##unchecked-structure-ref ,e 2 AST::t #f))
+  `(_gx#vector-ref ,e 2))
 
 (define (&SRC e #!optional (src-stx #f))
   (cond
@@ -77,31 +38,26 @@
       (error (if (fx< count k)
                "Too few values for context"
                "Too many values for context")
-        (if (##values? obj) (##values->list obj) obj)
+        (if (##values? obj) (_gx#vector->list obj) obj)
         k))))
 
 (define-macro (%&syntax-e obj)
   `(_gx#vector-ref ,obj 1))
 
 (define (_gx#compile stx)
-  ;; (_dbug "In _gx#compile" stx)
-  (core-ast-case
-   stx ()
-   ((form . _)
-    (cond
-     ((&core-resolve form)
-      => (lambda (bind)
-           ;; (_dbug "resolved as " bind (%&syntax-e bind))
-           ((%&syntax-e bind) stx)))
-     (else
-      (_gx#raise-syntax-error #f "Bad syntax" stx form))))))
+  (core-ast-case stx ()
+    ((form . _)
+     (cond
+      ((&core-resolve form)
+       => (lambda (bind)
+            ((%&syntax-e bind) stx)))
+      (else
+       (_gx#raise-syntax-error #f "Bad syntax" stx form))))))
 
 (define (_gx#compile-error stx #!optional (detail #f))
   (_gx#raise-syntax-error 'compile "Bad syntax; cannot compile" stx detail))
 
 (define (_gx#compile-ignore% stx)
-  ;; (_dbug "In compile-ignore, making src")
-  ;; (_gx#pp-syntax stx)
   (&SRC '(##void) stx))
 
 (define (_gx#compile-begin% stx)
@@ -148,7 +104,7 @@
                   (and (&AST-e id)
                        (&SRC
                         `(##define ,(&SRC id)
-                           )
+                                   (_gx#vector-ref ,tmp ,k))
                         stx)))
                 ids (iota len)))
            stx)))))))
@@ -297,7 +253,7 @@
              (foldr (lambda (hd r)
                       (core-match hd
                         ((id . k)
-                         (cons `(,id (##vector-ref ,tmp ,k)) r))))
+                         (cons `(,id (_gx#vector-ref ,tmp ,k)) r))))
                     bind init)))
         (else
          (&SRC
@@ -371,7 +327,7 @@
              (foldr (lambda (hd r)
                       (core-match hd
                         ((id . k)
-                         (cons `(##set! ,id (##vector-ref ,tmp ,k)) r))))
+                         (cons `(##set! ,id (_gx#vector-ref ,tmp ,k)) r))))
                     bind init)))
         (else
          (&SRC
@@ -450,7 +406,7 @@
                                    (core-match hd
                                      ((id . k)
                                       (&SRC
-                                       `(##set! ,id (##vector-ref ,tmp ,k))
+                                       `(##set! ,id (_gx#vector-ref ,tmp ,k))
                                        stx))))
                                  init))
                   stx)

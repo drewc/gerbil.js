@@ -8,7 +8,7 @@
   (block)
   (standard-bindings)
   (extended-bindings))
-(declare (not safe))
+(declare (safe))
 
 ;;; gerbil ASTs
 (define-struct AST (e source)
@@ -22,10 +22,10 @@
   `(##structure-instance-of? ,e 'gerbil#AST::t))
 
 (define-macro (%AST-e e)
-  `(##unchecked-structure-ref ,e 1 AST::t #f))
+  `(_gx#vector-ref ,e 1))
 
 (define-macro (%AST-source e)
-  `(##unchecked-structure-ref ,e 2 AST::t #f))
+  `(_gx#vector-ref ,e 2))
 
 (define (&AST e src-stx)
   (let ((src (&AST-source src-stx)))
@@ -162,9 +162,9 @@
   id: _gx#&context::t)
 
 (define-macro (%&context-super ctx)
-  `(##unchecked-structure-ref ,ctx 3 &context::t #f))
+  `(_gx#vector-ref ,ctx 3))
 (define-macro (%&context-table ctx)
-  `(##unchecked-structure-ref ,ctx 4 &context::t #f))
+  `(_gx#vector-ref ,ctx 4))
 
 (define-struct &runtime (id)
   id: _gx#&runtime::t)
@@ -1333,9 +1333,7 @@
            (recur rest (fx1+ n))
            (let (($tgt (gensym 'tgt)))
              (&AST
-              `(let-values
-                   (((,$tgt)
-                     (##unchecked-structure-ref ,tgt ,n ##type-type #f)))
+              `(let-values (((,$tgt) (_gx#vector-ref ,tgt ,n)))
                  ,(generate1 hd $tgt (recur rest (fx1+ n)) E))
               stx))))
         (else K)))

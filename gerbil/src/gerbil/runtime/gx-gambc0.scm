@@ -9,6 +9,42 @@
   (standard-bindings)
   (extended-bindings))
 
+;;; Change all vector stuff to this
+(define (_gx#vector-ref svs n)
+  (if (##structure? svs)
+      (##unchecked-structure-ref svs n ##type-type _gx#vector-ref)
+      (if (##values? svs)
+          (##values-ref svs n)
+          (if (##vector? svs)
+           (##vector-ref svs n)
+           (error "Tried _gx#vector-ref on a non-vector/struct/values: " svs)))))
+(define (_gx#vector-set! svs i value)
+  (if (##structure? svs)
+      (##unchecked-structure-set!
+       svs value i ##type-type _gx#vector-set!)
+      (if (##values? svs)
+          (##values-set! svs i value)
+          (if (##vector? svs)
+           (##vector-set! svs i value)
+           (error "Tried _gx#vector-set! on a non-vector/struct/values: " svs)))))
+(define (_gx#vector-length svs)
+  (if (##structure? svs) (##structure-length svs)
+      (if (##values? svs) (##values-length svs)
+          (if (##vector? svs) (##vector-length svs)
+           (error "Tried _gx#vector-length on a non-vector/struct/values: " svs)))))
+(define (_gx#vector->list svs)
+  (if (##vector? svs)
+      (##vector->list svs)
+      (if (##structure? svs)
+          (let ((end (##structure-length svs)))
+            (let sl ((n 0))
+              (if (= n end) '()
+                  (cons (##unchecked-structure-ref
+                         svs n ##type-type _gx#vector->list)
+                        (sl (+ 1 n))))))
+          (if (##values? svs) (##values->list svs)
+              (error "Tried _gx#vector->list on a non-vector/struct/values: " svs)))))
+
 ;;;
 ;;; Host Runtime
 ;;;
@@ -28,10 +64,10 @@
 (define (gerbil-runtime-smp?)
   ;; voodoo hack; this relies on the deq of the thread-group structure having
   ;; 3 fields in UP and 4 fields in SMP
-  ;; maybe one day marc will provide a primitive/principled way to figure that out, but
+ ;; maybe one day marc will provide a primitive/principled way to figure that out, but
   ;; until that day comes we really need to know in order to have the right cond-expand
   ;; branch when we include _gambit# or gx-gambc# (which includes _gambit#)
-  (not (%%structor-ref (thread-thread-group ##primordial-thread) 3)))
+  (not (%%vector-ref (thread-thread-group ##primordial-thread) 3)))
 
 (cond-expand
   (enable-smp
@@ -148,7 +184,7 @@
 ;;
 (define (type-descriptor? klass)
   (and (%%type? klass)
-       (eq? (%%structor-length klass) 12)))
+       (eq? (%%vector-length klass) 12)))
 
 (define (struct-type? klass)
   (and (type-descriptor? klass)
@@ -241,24 +277,24 @@
   (make-type-descriptor id name super mixin fields plist ctor slots #f))
 
 (define (type-descriptor-mixin klass)
-  (%%structor-ref klass 6))
+  (%%vector-ref klass 6))
 (define (type-descriptor-fields klass)
-  (%%structor-ref klass 7))
+  (%%vector-ref klass 7))
 (define (type-descriptor-plist klass)
-  (%%structor-ref klass 8))
+  (%%vector-ref klass 8))
 (define (type-descriptor-ctor klass)
-  (%%structor-ref klass 9))
+  (%%vector-ref klass 9))
 (define (type-descriptor-slots klass)
-  (%%structor-ref klass 10))
+  (%%vector-ref klass 10))
 (define (type-descriptor-methods klass)
-  (%%structor-ref klass 11))
+  (%%vector-ref klass 11))
 (define (type-descriptor-methods-set! klass ht)
-  (%%structor-set! klass 11 ht))
+  (%%vector-set! klass 11 ht))
 
 (define (type-descriptor-sealed? klass)
   (%%fxbit-set? 20 (%%type-flags klass)))
 (define (type-descriptor-seal! klass)
-  (%%structor-set! klass 3 (%%fxior (%%fxarithmetic-shift 1 20) (%%type-flags klass))))
+  (%%vector-set! klass 3 (%%fxior (%%fxarithmetic-shift 1 20) (%%type-flags klass))))
 
 (define (make-struct-type id super fields name plist ctor #!optional (field-names #f))
   (when (and super (not (struct-type? super)))
@@ -588,13 +624,13 @@
 (define direct-class-instance?
   direct-instance?)
 
-(define (make-object klass k)
-  (let ((obj (%%make-structure klass (%%fx+ k 1))))
-    (let effoff ((n 1))
-      (if (= n k) obj
-          (begin
-            (##unchecked-structure-set! obj #f n klass make-object)
-            (effoff (+ 1 n)))))))
+ (define (make-object klass k)
+   (let ((obj (##make-structure klass (%%fx+ k 1))))
+     (let effoff ((n 1))
+       (if (= n k) obj
+           (begin
+             (##unchecked-structure-set! obj #f n klass make-object)
+             (effoff (+ 1 n)))))))
 
 (define (make-struct-instance klass . args)
   (let ((fields (type-descriptor-fields klass)))
@@ -618,7 +654,7 @@
       (&class-instance-init! klass obj args)))))
 
 (define (struct-instance-init! obj . args)
-  (if (%%fx< (length args) (%%structor-length obj))
+  (if (%%fx< (length args) (%%vector-length obj))
     (&struct-instance-init! obj args)
     (error "Too many arguments for struct" obj args)))
 
@@ -626,7 +662,7 @@
   (let lp ((k 1) (rest args))
     (core-match rest
       ((hd . rest)
-       (%%structor-set! obj k hd)
+       (%%vector-set! obj k hd)
        (lp (%%fx+ k 1) rest))
       (else obj))))
 
@@ -640,7 +676,7 @@
        (cond
         ((class-slot-offset klass key)
          => (lambda (off)
-              (%%structor-set! obj (%%fx+ off 1) val)
+              (%%vector-set! obj (%%fx+ off 1) val)
               (lp rest)))
         (else
          (error "No slot for keyword initializer" klass key))))
@@ -667,7 +703,7 @@
 
 (define (struct->list obj)
   (if (object? obj)
-    (%%structor->list obj)
+    (%%vector->list obj)
     (error "Not an object" obj)))
 
 (define (class->list obj)
@@ -690,9 +726,9 @@
     (error "Not an object" obj)))
 
 (define (unchecked-field-ref obj off)
-  (%%structor-ref obj (%%fx+ off 1)))
+  (%%vector-ref obj (%%fx+ off 1)))
 (define (unchecked-field-set! obj off val)
-  (%%structor-set! obj (%%fx+ off 1) val))
+  (%%vector-set! obj (%%fx+ off 1) val))
 (define (unchecked-slot-ref obj slot)
   (unchecked-field-ref obj (class-slot-offset (object-type obj) slot)))
 (define (unchecked-slot-set! obj slot val)
@@ -708,10 +744,10 @@
      (,E ,obj ,slot)))
 
 (define (slot-ref obj slot #!optional (E &slot-error))
-  (&slot-e obj slot (lambda (off) (%%structor-ref obj (%%fx+ off 1))) E))
+  (&slot-e obj slot (lambda (off) (%%vector-ref obj (%%fx+ off 1))) E))
 
 (define (slot-set! obj slot val #!optional (E &slot-error))
-  (&slot-e obj slot (lambda (off) (%%structor-set! obj (%%fx+ off 1) val)) E))
+  (&slot-e obj slot (lambda (off) (%%vector-set! obj (%%fx+ off 1) val)) E))
 
 (define (&slot-error obj slot)
   (error "Cannot find slot" obj slot))
@@ -721,7 +757,6 @@
    ((method-ref obj id)
     => (lambda (method) (apply method obj args)))
    (else
-   (pp  (_gx#vector->list  obj))
     (error "Cannot find method" obj id))))
 
 ;; Methods
@@ -749,20 +784,7 @@
     (lambda args
       (apply method obj args))))
 
-(define (_disp* . args) (map display args) (newline))
-(define (_dbg . a) (let d ((t a))
-                     (display (car  t)) (display " why is this ")
-                     (if (not (null? (cdr t)))
-                         (d (cdr t)) (newline))))
 (define (find-method klass id)
-
- #;(if (equal? 'make-parameter id)
-      (begin
-        (_disp* "Finding " id " from " klass (type-descriptor? klass)
-                (%%type? klass) "\n"
-                (##table->list &builtin-type-methods)
-                "\n")
-        ))
   (cond
    ((type-descriptor? klass)
     (&find-method klass id))
@@ -772,12 +794,6 @@
    (else #f)))
 
 (define (&find-method klass id)
-  (if (equal? 'make-parameter id)
-      (begin
-        (_disp* "&find-method" klass id "\n"
-                (##table->list  (type-descriptor-methods klass))
-              )
-        ))
   (cond
    ((direct-method-ref klass id)
     => values)
@@ -818,8 +834,6 @@
            (builtin-find-method (%%type-super klass) id))))
 
 (define (direct-method-ref klass id)
-  #;(if (equal? id 'make-parameter)
-      (_disp* (table->list (type-descriptor-methods klass))))
   (cond
    ((type-descriptor-methods klass)
     => (lambda (ht) (hash-get ht id)))
@@ -1035,21 +1049,21 @@
 
 (define (values-count obj)
   (if (%%values? obj)
-    (%%structor-length obj)
+    (%%vector-length obj)
     1))
 
 (define (values-ref obj k)
   (if (%%values? obj)
-    (%%structor-ref obj k)
+    (%%vector-ref obj k)
     obj))
 
 (define (values->list obj)
   (if (%%values? obj)
-    (%%structor->list obj)
+    (%%vector->list obj)
     (list obj)))
 
 (define (subvector->list obj #!optional (start 0))
-  (let ((lst (%%structor->list obj)))
+  (let ((lst (%%vector->list obj)))
     (list-tail lst start)))
 
 (define make-hash-table make-table)
@@ -1148,9 +1162,9 @@
          hd rest))
 
 (define (hash-clear! ht #!optional (size 0))
-  (let ((gcht (%%structor-ref ht 5)))
+  (let ((gcht (%%vector-ref ht 5)))
     (if (not (fixnum? gcht))
-      (%%structor-set! ht 5 size))))
+      (%%vector-set! ht 5 size))))
 
 (define (make-list k #!optional (val #f))
   (unless (fixnum? k)
@@ -1586,16 +1600,16 @@
              (r (make-vector len)))
         (do ((k 0 (%%fx+ k 1)))
             ((%%fx= k len) r)
-          (%%structor-set! r k (f (%%structor-ref vec k))))))
+          (%%vector-set! r k (f (%%vector-ref vec k))))))
 
     (define (fold* vecs)
       (let* ((len (apply min (map vector-length vecs)))
              (r (make-vector len)))
         (do ((k 0 (%%fx+ k 1)))
             ((%%fx= k len) r)
-          (%%structor-set! r k
+          (%%vector-set! r k
                          (apply f
-                           (map (lambda (vec) (%%structor-ref vec k))
+                           (map (lambda (vec) (%%vector-ref vec k))
                                 vecs))))))
 
     (if (null? rest)
@@ -1663,7 +1677,7 @@
 (define exception-type::t (macro-type-exception))
 
 (define (type-descriptor-super-set! type super)
-  (%%structor-set! type 4 super))
+  (%%vector-set! type 4 super))
 
 (define exception::t
   (let ((t (make-struct-type 'gerbil#exception::t #f 0 'exception '() #f)))
@@ -1688,16 +1702,16 @@
 
 (define (error-message obj)
   (if (error? obj)
-    (%%structor-ref obj 1)
+    (%%vector-ref obj 1)
     (with-output-to-string '() (lambda () (display-exception obj)))))
 
 (define (error-irritants obj)
   (and (error? obj)
-       (%%structor-ref obj 2)))
+       (%%vector-ref obj 2)))
 
 (define (error-trace obj)
   (and (error? obj)
-       (%%structor-ref obj 3)))
+       (%%vector-ref obj 3)))
 
 (define (datum-parsing-exception-filepos e)
   (macro-readenv-filepos (datum-parsing-exception-readenv e)))
@@ -1743,8 +1757,7 @@
            (core-match hd-rest
              ((val . rest)
               (when kwt
-                (let ((pos (%%fxmodulo (keyword-hash hd)
-                                       (%%vector-length kwt))))
+                (let ((pos (%%fxmodulo (keyword-hash hd) (%%vector-length kwt))))
                   (unless (eq? hd (%%vector-ref kwt pos))
                     (error "Unexpected keyword argument" K hd))))
               (when (hash-key? keys hd)

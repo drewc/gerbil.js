@@ -1,6 +1,6 @@
 (declare (block) (standard-bindings) (extended-bindings))
 (begin
- ;; (declare (not safe))
+  (declare (safe))
   (define gx#*core-syntax-expanders*
     (cons (cons '%#begin
                 (cons 'top:
@@ -270,8 +270,8 @@
           (begin
             (_gx#vector-set! _self18257_ '1 'root)
             (_gx#vector-set! _self18257_ '2 (make-table 'test: eq?)))
-          (error '"struct-instance-init!: too many arguments for struct" (_gx#vector-length _self18257_)
-                 _self18257_ ))
+          (error '"struct-instance-init!: too many arguments for struct"
+                 _self18257_))
       (if _bind?18258_
           (begin
             (call-method _self18257_ 'bind-core-syntax-expanders!)

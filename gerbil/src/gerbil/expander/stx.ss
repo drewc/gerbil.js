@@ -8,7 +8,7 @@ namespace: gx
 (import "common")
 (export #t)
 
-(declare (not safe))
+(declare (safe))
 
 (def &AST-e
   (make-struct-field-unchecked-accessor AST::t 0))

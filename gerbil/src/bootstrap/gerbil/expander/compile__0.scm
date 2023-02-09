@@ -1,36 +1,19 @@
 (declare (block) (standard-bindings) (extended-bindings))
-(define (_dbug . a) (let d ((t a))
-                      (display (car  t)) (display " ")
-                      (if (not (null? (cdr t)))
-                          (d (cdr t)) (newline)))
-  (##force-output))
 (begin
-  ;;;; (declare (not safe))
+  (declare (safe))
   (define gx#core-compile-top-syntax
     (lambda (_stx17241_)
-      (_dbug "back in top syntax")
-      ;; Debug
-      ;; (set! gx#ccts-stx (cons _stx17241_ gx#ccts-stx))
-      (let* ((expression _stx17241_)
+      (let* ((_e1724217249_ _stx17241_)
              (_E1724417253_
               (lambda ()
-                (gx#raise-syntax-error '#f '"Bad syntax" expression)))
+                (gx#raise-syntax-error '#f '"Bad syntax" _e1724217249_)))
              (_E1724317267_
               (lambda ()
-                (if (gx#stx-pair? expression)
-                    (let ((_e1724517257_ (gx#syntax-e expression)))
-                      ;; (_dbug "Syntax-e from expression" _e1724517257_ )
+                (if (gx#stx-pair? _e1724217249_)
+                    (let ((_e1724517257_ (gx#syntax-e _e1724217249_)))
                       (let ((_hd1724617260_ (##car _e1724517257_))
                             (_tl1724717262_ (##cdr _e1724517257_)))
                         (let ((_form17265_ _hd1724617260_))
-                         #; (map display (list "Inside core-compile "
-                                             (length gx#ccts-stx)
-                                             " " (gx#syntax-local-e__0 _form17265_)
-                                             (find-method (gx#syntax-local-e__0 _form17265_) 'compile-top-syntax)
-                                             "\n"))
-
-                          ;; (_dbug "loca-e__0 "
-                          ;;        (gx#syntax-local-e__0 _form17265_))
                           (if '#t
                               (call-method
                                (gx#syntax-local-e__0 _form17265_)
@@ -38,35 +21,29 @@
                                _stx17241_)
                               (_E1724417253_)))))
                     (_E1724417253_)))))
-        (let ((res  (_E1724317267_)))
-          ;; (_dbug "Umm feck got res!" res)
-          res))))
+        (_E1724317267_))))
   (define gx#core-expander::compile-top-syntax
-    (lambda (self stx)
-      ;; (_dbug "In core expander")
-      (let* (
-             (ExpanderError
-              (lambda ()
-                (error "Wrong type of expander passed to gx#core-expander::compile-top-syntax" self)))
+    (lambda (_self17201_ _stx17202_)
+      (let* ((_self1720317211_ _self17201_)
+             (_E1720517215_
+              (lambda () (error '"No clause matching" _self1720317211_)))
              (_K1720617227_
-              (lambda (compiler)
-                (let ((_$e17220_ (gx#stx-source stx)))
-                  ;; (_dbug "syntax has source" _$e17220_ using)
+              (lambda (_K17218_)
+                (let ((_$e17220_ (gx#stx-source _stx17202_)))
                   (if _$e17220_
                       ((lambda (_g1722217224_)
                          (gx#stx-wrap-source
-                          (compiler stx)
+                          (_K17218_ _stx17202_)
                           _g1722217224_))
                        _$e17220_)
-                      (compiler stx))))))
-        (if (##structure-instance-of? self 'gx#core-expander::t)
-            (let* ((_e1720717230_ (_gx#vector-ref self '1))
-                   (_e1720817233_ (_gx#vector-ref self '2))
-                   (_e1720917236_ (_gx#vector-ref self '3))
+                      (_K17218_ _stx17202_))))))
+        (if (##structure-instance-of? _self1720317211_ 'gx#core-expander::t)
+            (let* ((_e1720717230_ (_gx#vector-ref _self1720317211_ '1))
+                   (_e1720817233_ (_gx#vector-ref _self1720317211_ '2))
+                   (_e1720917236_ (_gx#vector-ref _self1720317211_ '3))
                    (_K17239_ _e1720917236_))
-              ;; (_dbug "Compiling with" _K17239_)
               (_K1720617227_ _K17239_))
-            (ExpanderError)))))
+            (_E1720517215_)))))
   (bind-method!
    gx#core-expander::t
    'compile-top-syntax
@@ -77,7 +54,6 @@
       (gx#raise-syntax-error 'compile '"Cannot compile form" _stx17075_)))
   (define gx#core-compile-top-begin%
     (lambda (_stx17045_)
-      ;; (_dbug "core compile top begin")
       (let* ((_e1704617053_ _stx17045_)
              (_E1704817057_
               (lambda ()
@@ -99,7 +75,6 @@
         (_E1704717071_))))
   (define gx#core-compile-top-begin-syntax%
     (lambda (_stx17014_)
-      ;; (_dbug "In compile begin syntax")
       (let* ((_e1701517022_ _stx17014_)
              (_E1701717026_
               (lambda ()
@@ -264,18 +239,17 @@
                     (_E1680016809_)))))
         (_E1679916823_))))
   (define gx#core-compile-top-extern%
-    (lambda (stx)
-      ;; (_dbug "In Top Extern%")
-      (let* ((_E1677016779_
+    (lambda (_stx16767_)
+      (let* ((_e1676816775_ _stx16767_)
+             (_E1677016779_
               (lambda ()
-                (gx#raise-syntax-error '#f '"Bad syntax" stx)))
+                (gx#raise-syntax-error '#f '"Bad syntax" _e1676816775_)))
              (_E1676916793_
               (lambda ()
-                (if (gx#stx-pair? stx)
-                    (let ((_e1677116783_ (gx#syntax-e stx)))
+                (if (gx#stx-pair? _e1676816775_)
+                    (let ((_e1677116783_ (gx#syntax-e _e1676816775_)))
                       (let ((_hd1677216786_ (##car _e1677116783_))
                             (_tl1677316788_ (##cdr _e1677116783_)))
-                        ;; (_dbug "Extering " _tl1677316788_)
                         (let ((_body16791_ _tl1677316788_))
                           (if '#t
                               (cons '%#extern _body16791_)
@@ -311,11 +285,11 @@
                                                 (if '#t
                                                     (cons '%#define-values
                                                           (cons (gx#stx-map1
-                                                                 ;;<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-                                                                 gx#core-compile-top-runtime-bind
-                                                                 _hd16751_)
-                                                                (cons (gx#core-compile-top-syntax _expr16761_) '())))
-                                                    ;;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+;;<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+                         gx#core-compile-top-runtime-bind
+                         _hd16751_)
+                        (cons (gx#core-compile-top-syntax _expr16761_) '())))
+;;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
                                                     (_E1671616731_))
                                                 (_E1671616731_)))))
                                       (_E1671616731_)))))
@@ -352,13 +326,13 @@
                                                     (cons '%#define-syntax
                                                           (cons _hd16696_
                                                                 (cons (call-with-parameters
-                                                                       ;;<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-                                                                       (lambda ()
-                                                                         (gx#core-compile-top-syntax _expr16706_))
-                                                                       gx#current-expander-phi
-                                                                       (fx+ (gx#current-expander-phi) '1))
-                                                                      '())))
-                                                    ;;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+;;<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+                               (lambda ()
+                                 (gx#core-compile-top-syntax _expr16706_))
+                               gx#current-expander-phi
+                               (fx+ (gx#current-expander-phi) '1))
+                              '())))
+;;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
                                                     (_E1666116676_))
                                                 (_E1666116676_)))))
                                       (_E1666116676_)))))
@@ -521,11 +495,11 @@
                                                 (if '#t
                                                     (cons _form16401_
                                                           (cons (gx#stx-map1
-                                                                 ;;<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-                                                                 gx#core-compile-top-lambda-clause
-                                                                 _hd16439_)
-                                                                (cons (gx#core-compile-top-syntax _body16449_) '())))
-                                                    ;;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+;;<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+                         gx#core-compile-top-lambda-clause
+                         _hd16439_)
+                        (cons (gx#core-compile-top-syntax _body16449_) '())))
+;;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
                                                     (_E1640416419_))
                                                 (_E1640416419_)))))
                                       (_E1640416419_)))))
@@ -677,15 +651,15 @@
                                                            _tl1621816261_)
                                                           (if '#t
                                                               (cons '%#if
-                                                                    ;;<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-                                                                    (cons (gx#core-compile-top-syntax _test16244_)
-                                                                          (cons (gx#core-compile-top-syntax _K16254_)
-                                                                                (cons (gx#core-compile-top-syntax
-                                                                                       _E16264_)
-                                                                                      '()))))
-                                                              (_E1620616224_))
-                                                          (_E1620616224_)))))
-                                                ;;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+;;<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+                            (cons (gx#core-compile-top-syntax _test16244_)
+                                  (cons (gx#core-compile-top-syntax _K16254_)
+                                        (cons (gx#core-compile-top-syntax
+                                               _E16264_)
+                                              '()))))
+                      (_E1620616224_))
+                  (_E1620616224_)))))
+;;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
                                                 (_E1620616224_)))))
                                       (_E1620616224_)))))
                             (_E1620616224_))))
@@ -748,10 +722,10 @@
                                                 (if (gx#identifier? _id16146_)
                                                     (cons '%#set!
                                                           (cons (gx#core-compile-top-runtime-ref
-                                                                 ;;<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-                                                                 _id16146_)
-                                                                (cons (gx#core-compile-top-syntax _expr16156_) '())))
-                                                    ;;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+;;<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+                         _id16146_)
+                        (cons (gx#core-compile-top-syntax _expr16156_) '())))
+;;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
                                                     (_E1611116126_))
                                                 (_E1611116126_)))))
                                       (_E1611116126_)))))

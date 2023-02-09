@@ -7,7 +7,7 @@ namespace: gx
 
 (export #t)
 (import "common" "stx" "core")
-(declare (not safe))
+(declare (safe))
 
 (def (core-compile-top-syntax stx)
   (core-syntax-case stx ()
@@ -17,9 +17,9 @@ namespace: gx
 (defmethod {compile-top-syntax core-expander}
   (lambda (self stx)
     (with ((core-expander _ _ K) self)
-          (cond
-           ((stx-source stx) => (cut stx-wrap-source (K stx) <>))
-           (else (K stx))))))
+      (cond
+       ((stx-source stx) => (cut stx-wrap-source (K stx) <>))
+       (else (K stx))))))
 
 (def (core-compile-top-error stx)
   (raise-syntax-error 'compile "Cannot compile form" stx))

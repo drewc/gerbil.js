@@ -101,7 +101,6 @@ To try an track it down we go through the steps and figure out why there's not a
  2) [ ] In Eval Syntax* #<procedure #3084 _gx#compile-top-source>
 
 
- Let's get rid of safety
 
 
 #+begin_src sh :results verbatim :wrap example
@@ -113,9 +112,24 @@ To try an track it down we go through the steps and figure out why there's not a
   find . -name "*.scm" -exec sed -i "$(StarSed)" {} \;
 #+end_src
 
-#+RESULTS:
-#+begin_example
-#+end_example
+Add some debug to the files
+
+#+begin_src scheme
+(declare (block) (standard-bindings) (extended-bindings)
+         (debug) (debug-location) (debug-source) (debug-environments))
+#+end_src
+
+
+At the very end after chasing things down I end up seeing this.
+
+#+begin_src scheme
+Compiling top source bind-method!#<syntax #323>bind-method!
+#+end_src
+
+Those ~bind-method!~ forms were not in my printing. Somewhere I messed something up perhaps?
+
+Back to the start.
+
 
 #+HEADER: :tangle ../gerbil/src/build/build1.ss
 #+begin_src scheme :noweb yes
