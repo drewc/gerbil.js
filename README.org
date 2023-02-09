@@ -7,11 +7,42 @@ This is the attempt.
 
 * Getting Started
 
-Right now the "easy" way is simply to clone the repo and ~./bin/build.sh~ it.
+Right now the "easy" way is simply to clone the repo and run ~./bin/build.sh~ in it.
+
+
+#+begin_src bash :session gx-get-started
+  cd /tmp
+  git clone git@github.com:drewc/gerbil.js.git
+  cd gerbil.js
+  ./bin/build.sh
+#+end_src
+
+Right now it fails, but does a lot beforehand. Here's what you might see.
+
+#+begin_quote
+>>> compiling gerbil core
+,*** ERROR IN _gx#compile-top-source -- Cannot find method #<top-special-form #2> make-parameter
+>
+#+end_quote
+
+That's a REPL that will continue with that error. Type =,q= to exit if you do not want to look around.
+
+Now try this!
+
+#+begin_src sh
+$ ./bin/gxi-boot -
+> (def (this-is gerbil: (version "bootstrap")) (displayln "This is Gerbil: " version))
+> (this-is)
+This is Gerbil: bootstrap
+> ,q
+#+end_src
+
 
 * Hacking and The Log
 
 To see where we're at, or at least the published version, view the lastest =./log/*.org= file.
+
+Here's how I create those files in emacs.
 
 #+begin_src emacs-lisp
   (defun gerbil.js/create-new-log ()
