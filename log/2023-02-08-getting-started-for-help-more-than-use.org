@@ -1,0 +1,51 @@
+#+title: Getting Started (for help more than use)
+#+date: <2023-02-08 17:11>
+#+description: I need an easy way for others to get where I am. This is it
+#+filetags: shell git scheme gambit gerbil
+
+Essentially I need *@vyzo* to track down what I miss as I'm not a gerbil benevolent dictator and lack some clues.
+
+So, here's the easy way to build what I got.
+
+
+* Grab the git!
+
+This does not need to be a part of the script that will be included in the repo because that circularity is somewhat crazy.
+
+#+begin_src bash :session gx-get-started
+  cd /tmp
+  # git clone git@github.com:drewc/gerbil.js.git
+  cd gerbil.js
+
+  export GERBIL_JS_HOME=$(pwd)
+#+end_src
+
+#+RESULTS:
+
+* Make a directory =./bin=
+
+#+begin_src bash :session gx-get-started
+  mkdir $GERBIL_JS_HOME/bin
+#+end_src
+
+
+* Start the Shebang
+#+HEADER: :shebang #!/usr/bin/env bash
+#+begin_src bash :tangle ../bin/build.sh :mkdirp t
+  _MyPath=$(dirname $0)
+  cd $_MyPath;
+
+  getSubs() {
+    git submodule update --init --recursive
+  }
+
+  if [ -f ../gambit/README ]; then
+    echo "Already have gambit"
+  else
+    git submodule update --init --recursive
+  fi
+
+
+#+end_src
+
+#+RESULTS:
