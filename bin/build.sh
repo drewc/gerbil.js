@@ -35,8 +35,8 @@ fi
 GERBIL_SRC=$_MyPath/../gerbil
 GAMBIT_SRC=$_MyPath/../gambit
 
-GERBIL_GSI=$GERBIL_SRC/gsi-js
-GERBIL_GSC=$GAMBIT_SRC/gsc/gsc
+export GERBIL_GSI=$GERBIL_SRC/gsi-js
+export GERBIL_GSC=$GAMBIT_SRC/gsc/gsc
 
 echo "Building gsi-js"
 cd $GERBIL_SRC/src/gerbil && \
