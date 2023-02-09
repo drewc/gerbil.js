@@ -1,0 +1,2 @@
+[submodule "gambit"]
+	url = git@github.com:drewc/gambit.git
