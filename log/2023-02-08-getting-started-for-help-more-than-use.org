@@ -14,13 +14,11 @@ This does not need to be a part of the script that will be included in the repo 
 
 #+begin_src bash :session gx-get-started
   cd /tmp
-  # git clone git@github.com:drewc/gerbil.js.git
+  git clone git@github.com:drewc/gerbil.js.git
   cd gerbil.js
 
   export GERBIL_JS_HOME=$(pwd)
 #+end_src
-
-#+RESULTS:
 
 * Make a directory =./bin=
 
@@ -30,10 +28,13 @@ This does not need to be a part of the script that will be included in the repo 
 
 
 * Start the Shebang
+
+This is where we pull the gambit submodule.
+
 #+HEADER: :shebang #!/usr/bin/env bash
 #+begin_src bash :tangle ../bin/build.sh :mkdirp t
-  _MyPath=$(dirname $0)
-  cd $_MyPath;
+  cd $(dirname $0)
+  _MyPath="$(pwd)"
 
   getSubs() {
     git submodule update --init --recursive
@@ -42,10 +43,102 @@ This does not need to be a part of the script that will be included in the repo 
   if [ -f ../gambit/README ]; then
     echo "Already have gambit"
   else
-    git submodule update --init --recursive
+    echo "Updating submodules. This may take a while."
+    getSubs
   fi
+#+end_src
 
+
+* Build our gambit
+
+#+begin_src bash :tangle ../bin/build.sh
+    buildGambit () {
+     cd $_MyPath
+     cd ../gambit
+    ./configure --prefix=$(pwd) --enable-single-host \
+                --enable-default-compile-options="(compactness 0)"
+    make clean
+    make -j8 core
+    make _gambit.js
+    cd -
+    }
+
+    if [[ -f ../gambit/gsc/gsc ]];
+    then
+        echo "Have already built gsc"
+    else
+        echo "Building Gambit"
+        buildGambit
+    fi
+#+end_src
+
+* Build our own ~gsi-js~
+
+#+begin_src bash :tangle ../bin/build.sh
+   GERBIL_SRC=$_MyPath/../gerbil
+   GAMBIT_SRC=$_MyPath/../gambit
+
+   GERBIL_GSI=$GERBIL_SRC/gsi-js
+   GERBIL_GSC=$GAMBIT_SRC/gsc/gsc
+
+   echo "Building gsi-js"
+   cd $GERBIL_SRC/src/gerbil && \
+         $GERBIL_GSC -target js -exe -o $GERBIL_GSI ./gsi-js.scm
+
+   cd $_MyPath
+
+   ln -srvf $GERBIL_GSI $_MyPath/
+   ln -srvf $GERBIL_GSC $_MyPath/
 
 #+end_src
 
-#+RESULTS:
+* Build our bootstrap
+
+First, ~gxi~.
+
+#+begin_src bash :tangle ../bin/build.sh
+  build_gxi() {
+      cd $GERBIL_SRC/src/ && ./build.sh gxi
+      cd $_MyPath;
+  }
+
+  if [[ -f $GERBIL_SRC/src/gxi ]]; then
+      echo "Already have gxi shim"
+  else
+      build_gxi
+  fi
+
+   ln -srvf $GERBIL_SRC/src/gxi $_MyPath/gxi-shim
+
+#+end_src
+
+Now =stage0=.
+
+#+begin_src bash :tangle ../bin/build.sh
+  build_bootstrap() {
+      cd $GERBIL_SRC/src/ && ./build.sh stage0
+      cd $_MyPath;
+  }
+
+  build_bootstrap
+#+end_src
+
+And a simple script to run that.
+
+#+begin_src bash :tangle ../bin/gxi-boot :shebang #!/usr/bin/env bash
+  cd $(dirname $0)
+  GERBIL_GSI="$(cd ../gerbil && pwd)/gsi-js"
+  GERBIL_HOME=$(cd ../gerbil/bootstrap && pwd)
+  exec $GERBIL_HOME/bin/gxi $@
+#+end_src
+
+And Stage1
+
+#+begin_src bash :tangle ../bin/build.sh
+  build_first_stage() {
+      cd $GERBIL_SRC/src/ && ./build.sh stage1
+      cd $_MyPath;
+  }
+
+  build_first_stage
+#+end_src

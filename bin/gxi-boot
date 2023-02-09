@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+cd $(dirname $0)
+GERBIL_GSI="$(cd ../gerbil && pwd)/gsi-js"
+GERBIL_HOME=$(cd ../gerbil/bootstrap && pwd)
+exec $GERBIL_HOME/bin/gxi $@

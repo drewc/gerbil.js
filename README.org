@@ -3,3 +3,19 @@
 I have been a web app developer for my entire career. I like Gerbil Meta-Scheme and want to use it in the browser to interact with my services.
 
 This is the attempt.
+
+
+* Getting Started
+
+Right now the "easy" way is simply to clone the repo and ~./bin/build.sh~ it.
+
+* Hacking and The Log
+
+To see where we're at, or at least the published version, view the lastest =./log/*.org= file.
+
+#+begin_src emacs-lisp
+  (defun gerbil.js/create-new-log ()
+    (interactive)
+    (let ((org-static-blog-drafts-directory "~/me/MuKn/src/gerbil.js/log"))
+      (org-static-blog-create-new-draft)))
+#+end_src

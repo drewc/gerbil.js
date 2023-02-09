@@ -11,7 +11,7 @@ Here are the known steps.
 
    1) [X] Build our own ~gsi.js~ executable to use for our ~gxi~.
 
-   2) [ ] Add =-target js= where needed
+   2) [X] Add =-target js= where needed
 
    3) [X] Redo the =%%= shims to remove the not safe AND only use our =_gx#vector-*= "primitives"
 
@@ -22,7 +22,7 @@ Here are the known steps.
    6) [X] add the ~##make-structure~ to ~make-object~
 
    7) [X] Remove most ~(declare (not safe))~'s so we can see
-   8) [ ] Try out ~build1.ss~ again. AKA ~stage1~.
+   8) [X] Try out ~build1.ss~ again. AKA ~stage1~.
 
 We need to reset almost everything!
 
