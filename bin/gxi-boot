@@ -2,4 +2,5 @@
 cd $(dirname $0)
 GERBIL_GSI="$(cd ../gerbil && pwd)/gsi-js"
 GERBIL_HOME=$(cd ../gerbil/bootstrap && pwd)
+cd -
 exec $GERBIL_HOME/bin/gxi $@

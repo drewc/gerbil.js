@@ -129,6 +129,7 @@ And a simple script to run that.
   cd $(dirname $0)
   GERBIL_GSI="$(cd ../gerbil && pwd)/gsi-js"
   GERBIL_HOME=$(cd ../gerbil/bootstrap && pwd)
+  cd -
   exec $GERBIL_HOME/bin/gxi $@
 #+end_src
 
@@ -142,3 +143,5 @@ And Stage1
 
   build_first_stage
 #+end_src
+
+* The (not quite) end (to this log).
