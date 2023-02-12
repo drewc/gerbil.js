@@ -22,7 +22,8 @@
     (let* ((proc
             (open-process
              (list path: (getenv "GERBIL_GSC" default-gambit-gsc)
-                   arguments: `(,@options ,modf)
+                   arguments: `("-module-ref" ,modf
+                                ,@options ,modf)
                    stdout-redirection: #f)))
            (status (process-status proc)))
       (close-port proc)

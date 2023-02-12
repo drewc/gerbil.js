@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 cd $(dirname $0)
-GERBIL_GSI="$(cd ../gerbil && pwd)/gsi-js"
-GERBIL_HOME=$(cd ../gerbil/bootstrap && pwd)
+export GERBIL_GSI="$(cd ../gerbil && pwd)/gsi-js"
+export GERBIL_HOME=$(cd ../gerbil/bootstrap && pwd)
 cd -
-exec $GERBIL_HOME/bin/gxi $@
+exec $GERBIL_HOME/bin/gxi "$@"

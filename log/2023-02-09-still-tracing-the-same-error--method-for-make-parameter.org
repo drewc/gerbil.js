@@ -1,0 +1,378 @@
+#+title: Still tracing the same error: Method for make-parameter
+#+date: <2023-02-09 10:58>
+#+description:
+#+filetags: gerbil scheme gambit javascript repl debug
+
+
+#+begin_src bash :session gxm-param
+  GXJS_SRC=$(cd .. && pwd)
+  GERBIL_GSC=$GXJS_SRC/bin/gsc
+#+end_src
+
+#+begin_src scheme
+
+  (declare (block) (standard-bindings) (extended-bindings)
+           (debug) (debug-location) (debug-source) (debug-environments)
+           )
+#+end_src
+
+
+* Compile
+
+We've been at this before! I think its =_gx#compile=. Regardless, it's in this.
+
+#+begin_src scheme
+  (define (_gx#compile-top stx)
+  (_gx#compile (gx#core-compile-top-syntax stx)))
+#+end_src
+
+So time to change it in gx-gambc
+
+#+begin_src scheme
+    (define (_gx#compile-top stx)
+      (let ((comp-me
+             (with-exception-catcher
+              (lambda (e)
+                (displayln "failed trying " gx#core-compile-top-syntax
+                           (eq? gx#core-compile-top-syntax _gx#dbug_comp))
+                (raise e))
+              (lambda () (gx#core-compile-top-syntax stx))))
+        (displayln "compile" comp-me) (##force-output)
+        (_gx#compile comp-me)))
+#+end_src
+
+The error falls within the core it seems.
+
+#+begin_example
+ ./gerbil/expander/compile.ss (def (core-compile-top-syntax stx)
+
+  ./bootstrap/gerbil/expander/compile__0.scm:  (define gx#core-compile-top-syntax
+
+  ./bootstrap/gerbil/expander/compile.ssi:         (%#define-runtime core-compile-top-syntax gx#core-compile-top-syntax)
+#+end_example
+
+
+  Eventually, with a tonne of debug declarations and the like, I get to see this:
+
+#+begin_src scheme
+  Bad syntaxBad syntax#<syntax #13138>#<procedure #6 call-method>#<procedure #7 method-ref>#<top-special-form #8>Bad syntaxor#tCannot compile non-primitive quote#fBad syntax#<table #10>struct-instance-init!: too many arguments for struct
+#+end_src
+
+#+begin_src sh :results verbatim :wrap text
+  find ../gerbil -type f -not -name '*js*' -exec grep -Hi 'compile non-primitive quote' {} \;
+#+end_src
+
+#+begin_text
+../gerbil/src/gerbil/compiler/compile.ss:      (raise-compile-error "Cannot compile non-primitive quote" stx))))
+../gerbil/src/bootstrap/gerbil/compiler/compile__0.scm:                                           '"Cannot compile non-primitive quote"
+../gerbil/bootstrap/lib/gerbil/compiler/compile__0.scm:                                           '"Cannot compile non-primitive quote"
+#+end_text
+
+* UPDATE: WTF!
+
+Don't even ask how I tracked this down, but here's what happens.
+
+#+begin_src bash :results verbatim :wrap example
+  gxi-boot () {
+      ../bin/gxi-boot "$@"
+  }
+
+  gxi-boot -e '(displayln "\n----- Gerbil is working -----")'\
+           -e '(import :gerbil/compiler/base)' \
+           -e '(displayln "See?: " gxc#current-compile-symbol-table)' \
+           -e '(displayln "But, now ...")' \
+           -e '(import :gerbil/compiler/compile)' \
+           -e '(displayln "Shut us ill fackud ep")'
+#+end_src
+
+#+RESULTS:
+#+begin_example
+/home/drewc/me/MuKn/src/gerbil.js/log
+
+----- Gerbil is working -----
+See?: #<procedure #2 gxc#current-compile-symbol-table>
+But, now ...
+Core Context Was: #<expression-form #3> With method #<procedure #4 gx#core-expander::compile-top-syntax>
+Loaded comp1
+Now looking for the method: test#<top-special-form #5>%#begin-annotation#f
+
+Wait, does this look for the method of whatever was output on stdout while this file is loading?
+,*** ERROR IN _gx#compile-top -- Cannot find method #<top-special-form #6> make-parameter
+>
+,*** EOF again to exit
+#+end_example
+
+#+begin_example
+/home/drewc/me/MuKn/src/gerbil.js/log
+
+----- Gerbil is working -----
+See?: #<procedure #2 gxc#current-compile-symbol-table>
+But, now ...
+Core Context Was: #<expression-form #3> With method #<procedure #4 gx#core-expander::compile-top-syntax>
+Loaded comp1
+,*** ERROR IN _gx#compile-top -- Cannot find method #<top-special-form #5> make-parameter
+>
+,*** EOF again to exit
+#+end_example
+
+#+begin_example
+/home/drewc/me/MuKn/src/gerbil.js/log
+
+----- Gerbil is working -----
+See?: #<procedure #2 gxc#current-compile-symbol-table>
+But, now ...
+Core Context Was: #<expression-form #3> With method #<procedure #4 gx#core-expander::compile-top-syntax>
+Loaded comp1
+Now looking for the method:
+#<top-special-form #5>make-parameter#f
+
+Wait, does this look for the method of whatever was output on stdout while this file is loading?
+,*** ERROR IN _gx#compile-top -- Cannot find method #<top-special-form #6> "Now looking for the method: "
+>
+,*** EOF again to exit
+#+end_example
+
+
+
+* Kompiler time: clone dat
+
+
+#+begin_src bash :results verbatim :wrap example
+  gxi-boot () {
+      ../bin/gxi-boot "$@"
+  }
+
+  gxi-boot -e '(displayln "\n----- Gerbil is working -----")'\
+           -e '(import :gerbil/compiler/base)' \
+           -e '(displayln "See?: " gxc#current-compile-symbol-table)' \
+           -e '(load-module "gerbil/kompiler/foo")' \
+           -e '(foo "bar\n")' \
+           -e '(load-module "gerbil/kompiler/kompile__0")' \
+           -e '(displayln (something-to-export #t))' \
+           -e '(load-module "gerbil/kompiler/kompile__1")' \
+           -e '(displayln "But, now ...")' \
+           -e '(load-module "gerbil/kompiler/compile")' \
+           -e '(load-module "gerbil/expander/compile__0")' \
+           -e '(load-module "gerbil/foo/compiler__0")' \
+           -e '(load-module "gerbil/foo/compile")' \
+           -e '(displayln "OMFG IS IT JUST THE NAME OF THE MODULE? ")' \
+           -e '(load-module "gerbil/foo/compile__0")' \
+           -e '(displayln " ... and, now ...")' \
+           -e '(load-module "gerbil/kompiler/compile__0")' \
+           -e '(displayln "Shut us ill fackud ep")'
+#+end_src
+
+#+RESULTS:
+#+begin_example
+/home/drewc/me/MuKn/src/gerbil.js/log
+
+----- Gerbil is working -----
+See?: #<procedure #2 gxc#current-compile-symbol-table>
+bar
+,*** entering bb1_kompile____0_23_
+,*** entering bb1_something_2d_to_2d_export
+,*** entering bb2_something_2d_to_2d_export
+42
+,*** entering bb1_kompile____1_23_
+But, now ...
+,*** entering bb1_compile_23_
+OMFG IS IT JUST THE NAME OF THE MODULE?
+,*** entering bb1_compile____0_23_
+,*** ERROR IN _gx#compile-top -- Cannot find method #<top-special-form #3> This-is-the-first-form-in-a-buffer/module-named-compile__0
+>
+,*** EOF again to exit
+#+end_example
+
+#+begin_src bash :results verbatim :wrap example
+  gxi-boot () {
+      ../bin/gxi-boot "$@"
+  }
+
+  gxi-boot -e '(displayln "\n----- Gerbil is working -----")'\
+           -e '(displayln "OMFG IS IT JUST THE NAME OF THE MODULE? ")' \
+           -e '(load-module "gerbil/foo/compile__0")' \
+           -e '(displayln " ... and, now ...")' \
+           -e '(displayln "Shut us ill fackud ep")'
+#+end_src
+
+#+RESULTS:
+#+begin_example
+/home/drewc/me/MuKn/src/gerbil.js/log
+
+----- Gerbil is working -----
+OMFG IS IT JUST THE NAME OF THE MODULE?
+,*** entering bb1_compile____0_23_
+,*** ERROR IN _gx#compile-top -- Cannot find method #<top-special-form #2> This-is-the-first-and-only-form-in-a-buffer/module-named-compile__0
+>
+,*** EOF again to exit
+#+end_example
+
+It turns out it was all about bytecode.
+
+* Solution!
+
+#+begin_quote
+Don't even ask how I tracked this down, but here's what happens.
+
+gxi-boot () {
+    ../bin/gxi-boot "$@"
+}
+
+gxi-boot -e '(displayln "\n----- Gerbil is working -----")'\
+         -e '(import :gerbil/compiler/base)' \
+         -e '(displayln "See?: " gxc#current-compile-symbol-table)' \
+         -e '(displayln "But, now ...")' \
+         -e '(import :gerbil/compiler/compile)' \
+         -e '(displayln "Shut us ill fackud ep")'
+
+=>
+
+----- Gerbil is working -----
+See?: #<procedure #2 gxc#current-compile-symbol-table>
+But, now ...
+Core Context Was: #<expression-form #3> With method #<procedure #4 gx#core-expander::compile-top-syntax>
+Loaded comp1
+Now looking for the method:
+#<top-special-form #5>make-parameter#f
+
+Wait, does this look for the method of whatever was output on stdout while this file is loading?
+,*** ERROR IN _gx#compile-top -- Cannot find method #<top-special-form #6> "Now looking for the method: "
+>
+,*** EOF again to exit
+
+After "Now looking for the method:" is supposed to be the same line as "Core Context Was: "
+instead what is output, and thank you for being a rubber ducky, appears to be nothing, the form, a symbol, and #f for the method not being found.
+That is very strange as it appears to mean that somehow loading that context is messing up the heap or stack pointer(s).
+Drew Crampsie
+@drewc
+14:37
+it's gotta be the heap, as the special form and the #f are passed in whereas the ... wait ... this is a channel...
+
+  (define gx#core-dbg-cxt #f)
+    (define (gx#dbg-core-cxt)
+      (displayln "Core Context Was: " gx#core-dbg-cxt " With method "
+                 (method-ref gx#core-dbg-cxt 'compile-top-syntax)))
+
+So those strings work once, but then the heap or stack pointers or index are off as next time it runs that make-parameter is there and ... omg it's the stack!
+Drew Crampsie
+@drewc
+14:43
+At the very top of compiler/compile__0.scm is/was:
+
+;; ;;  Debug Here
+(display "Now looking for the method: ")
+(gx#dbg-core-cxt)
+(display "\n")
+(display "Wait, does this look for the method of whatever was output on stdout while this file is loading?\n")
+
+Commenting that out, the top after the declare forms is:
+
+(begin
+
+  (define gxc#current-compile-methods (make-parameter '#f))
+
+Now running the same thing in gxi-boot gives me:
+
+----- Gerbil is working -----
+See?: #<procedure #2 gxc#current-compile-symbol-table>
+But, now ...
+Core Context Was: #<expression-form #3> With method #<procedure #4 gx#core-expander::compile-top-syntax>
+Loaded comp1
+,*** ERROR IN _gx#compile-top -- Cannot find method #<top-special-form #5> make-parameter
+>
+
+Drew Crampsie
+@drewc
+14:51
+and adding that form to the end has different things as strings
+
+----- Gerbil is working -----
+See?: #<procedure #2 gxc#current-compile-symbol-table>
+But, now ...
+Core Context Was: #<expression-form #3> With method #<procedure #4 gx#core-expander::compile-top-syntax>
+Loaded comp1
+Now looking for the method: test#<top-special-form #5>%#begin-annotation#f
+
+Wait, does this look for the method of whatever was output on stdout while this file is loading?
+,*** ERROR IN _gx#compile-top -- Cannot find method #<top-special-form #6> make-parameter
+>
+,*** EOF again to exit
+
+and, finally, changing the very first one to fake-parameter gives me this:
+
+Core Context Was: #<expression-form #2> With method #<procedure #3 gx#core-expander::compile-top-syntax>
+Loaded comp1
+*** ERROR IN compile__0# -- Operator is not a PROCEDURE
+(#!void #f)
+> 42
+*** ERROR IN compile__0# -- Cannot find method #<expression-form #2> fake-parameter
+>
+
+Drew Crampsie
+@drewc
+14:57
+Holy fsck, that was extremely difficult to track down. Weeks spent looking for where/why it was seeking a method for make-parameter.
+Drew Crampsie
+@drewc
+16:35
+OMFG
+@vyzo awake yet?
+
+ gxi-boot () {
+      ../bin/gxi-boot "$@"
+  }
+
+  gxi-boot -e '(displayln "\n----- Gerbil is working -----")'\
+           -e '(displayln "OMFG IS IT JUST THE NAME OF THE MODULE? ")' \
+           -e '(load-module "gerbil/foo/compile__0")' \
+           -e '(displayln " ... and, now ...")' \
+           -e '(displayln "Shut us ill fackud ep")'
+
+=>
+
+----- Gerbil is working -----
+OMFG IS IT JUST THE NAME OF THE MODULE?
+,*** entering bb1_compile____0_23_
+,*** ERROR IN _gx#compile-top -- Cannot find method #<top-special-form #2> This-is-the-first-and-only-form-in-a-buffer/module-named-compile__0
+>
+
+Drew Crampsie
+@drewc
+16:59
+@vyzo: do you know if that's a gerbil or gambit issue? naming the file anything else does not have that, only 'compile__0.scm'
+@drewc wishes he had a heavy indica because it was only 8 or so hours coding today and the brain is turning over hard and fast ... want couch lock!
+Drew Crampsie
+@drewc
+17:01
+especially as I somewhat figured it out ... my mind knows where it needs to delve in deep and thinks it's very close.
+I'm pretty sure it's wrong, but not by much :P
+Drew Crampsie
+@drewc
+17:48
+Solved it. FFS.
+in the end it's bytecode.
+Because gerbil's modules are not based on gambit's modules and C is different than JavaScript. You know that anger you feel at your dumb self once you stop being dumb through well gained knowledge? :D I'm so very pissed off now.
+See how it says: bb1_compile____0_23_ in my last code quote?
+Drew Crampsie
+@drewc
+17:53
+That's the bytecode (AKA javascript) name of the init function for what gerbil calls the "gerbil/foo/compile__0". Note that it is missing "gerbil/foo/".
+Now, the first var in that compiled file? _cst0__compile____0_23_ = _make_interned_symbol("This-is-the-first-form-in-a-buffer/module-named-compile__0");
+Drew Crampsie
+@drewc
+17:58
+Gambit uses no namespaces and bleeds the variables everywhere. I actually have a transpiler to get rid of/around that, but needed to run gerbil first before looking into that. Anyways, in compiler/compile__0.o1? _cst0__compile____0_23_ = _make_interned_symbol("make-parameter");
+OMFG, that means that, in "expander/compile__0", no ... no no no no ...
+
+_cst0__compile____0_23_ = _make_interned_symbol("compile-top-syntax");
+
+I spent weeks looking for another place that looks for and uses methods on expansion and compilation and could only find that one place. It turns out that was the right place.
+Drew Crampsie
+@drewc
+18:07
+In conclusion, I was right, it was the heap and a pointer, in a JavaScript way. Sorry for littering this channel but it was such a wonderful rubber ducky that I'll be singing Ernie's song all night! Thank you all!!! :D <3
+</end-scene>
+_
+
+
+#+end_quote

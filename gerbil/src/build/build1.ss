@@ -58,7 +58,7 @@
     (displayln "... compile " modf)
     (compile-file modf [output-dir: gerbil-libdir invoke-gsc: #t
                         debug: debug optimize: optimize? generate-ssxi: gen-ssxi? static: static?
-                        gsc-options: [ "-target" "js"
+                        gsc-options: [ "-target" "js" "-module-ref" modf
                                       ;; "-cc-options" "--param max-gcse-memory=300000000"
                                      ]]))
 
