@@ -1,29 +1,72 @@
-(declare (block) (standard-bindings) (extended-bindings))
+(declare
+ ;; (block)
+ (standard-bindings) (extended-bindings)
+ (not inline)
+ )
 (begin
   (declare (safe))
-  (define gx#core-compile-top-syntax
-    (lambda (_stx17241_)
-      (let* ((_e1724217249_ _stx17241_)
-             (_E1724417253_
-              (lambda ()
-                (gx#raise-syntax-error '#f '"Bad syntax" _e1724217249_)))
-             (_E1724317267_
-              (lambda ()
-                (if (gx#stx-pair? _e1724217249_)
-                    (let ((_e1724517257_ (gx#syntax-e _e1724217249_)))
-                      (let ((_hd1724617260_ (##car _e1724517257_))
-                            (_tl1724717262_ (##cdr _e1724517257_)))
-                        (let ((_form17265_ _hd1724617260_))
-                          (if '#t
-                              (call-method
-                               (gx#syntax-local-e__0 _form17265_)
-                               'compile-top-syntax
-                               _stx17241_)
-                              (_E1724417253_)))))
-                    (_E1724417253_)))))
-        (_E1724317267_))))
+  (begin
+    (declare
+     ;; (debug)
+     ;; (debug-location)
+     ;; (debug-source)
+     ;; (debug-environments)
+     )
+    (define gx#core-dbg-cxt #f)
+    (define (gx#dbg-core-cxt)
+      (displayln "Core Context Was: " gx#core-dbg-cxt " With method "
+                 (method-ref gx#core-dbg-cxt 'compile-top-syntax)))
+    (define gx#core-compile-top-syntax
+      (lambda (stx)
+        (##force-output)
+        (let* ((_E1724417253_
+                (lambda ()
+                  (gx#raise-syntax-error '#f '"CCTS Bad syntax" stx)))
+               (_E1724317267_
+                (lambda ()
+                  (if (gx#stx-pair? stx)
+                      (let ((_e1724517257_ (gx#syntax-e stx)))
+                        (let ((_hd1724617260_ (##car _e1724517257_))
+                              (_tl1724717262_ (##cdr _e1724517257_)))
+                          (let* ((form _hd1724617260_)
+                                 (cxt (gx#syntax-local-e__0 form))
+                                 (klass (object-type cxt)))
+                            (set! gx#core-dbg-cxt cxt)
+                           #; (displayln
+                             "\n------------------------\n"
+                             "Top Syntax Form: "
+                             stx call-method method-ref
+                             (gx#syntax-local-e__0 form)
+                             "\n------------------------\n"
+                             "\nObject?"
+                             (object? cxt)
+                             " class " klass
+                             " type descript? "
+                             (type-descriptor? klass)
+                             " ##type? " (##type? klass)
+                             " id " (##type-id klass)
+                             " --Super-- " (##type-super klass)
+                             " \n* - methods "
+                             "\nCompile top syntax method ref"
+                             (method-ref
+                              (gx#syntax-local-e__0 form)
+                              'compile-top-syntax)
+                             "\n&method-specializers"
+                             &method-specializers
+                             "\n------------------------\n"
+                             )
+                            (if '#t
+                                (call-method
+                                 (gx#syntax-local-e__0 form)
+                                 'compile-top-syntax
+                                 stx)
+                                (_E1724417253_)))))
+                      (_E1724417253_)))))
+          (_E1724317267_)))))
+  (define _gx#dbug_comp gx#core-compile-top-syntax)
   (define gx#core-expander::compile-top-syntax
     (lambda (_self17201_ _stx17202_)
+      ;; (displayln "Entering core expander compile")
       (let* ((_self1720317211_ _self17201_)
              (_E1720517215_
               (lambda () (error '"No clause matching" _self1720317211_)))
@@ -42,6 +85,7 @@
                    (_e1720817233_ (_gx#vector-ref _self1720317211_ '2))
                    (_e1720917236_ (_gx#vector-ref _self1720317211_ '3))
                    (_K17239_ _e1720917236_))
+              ;; (displayln "Got this?" _K17239_)
               (_K1720617227_ _K17239_))
             (_E1720517215_)))))
   (bind-method!
@@ -57,7 +101,7 @@
       (let* ((_e1704617053_ _stx17045_)
              (_E1704817057_
               (lambda ()
-                (gx#raise-syntax-error '#f '"Bad syntax" _e1704617053_)))
+                (gx#raise-syntax-error '#f '"top befin Bad syntax" _e1704617053_)))
              (_E1704717071_
               (lambda ()
                 (if (gx#stx-pair? _e1704617053_)
@@ -78,7 +122,7 @@
       (let* ((_e1701517022_ _stx17014_)
              (_E1701717026_
               (lambda ()
-                (gx#raise-syntax-error '#f '"Bad syntax" _e1701517022_)))
+                (gx#raise-syntax-error '#f '" top begni syntax% Bad syntax" _e1701517022_)))
              (_E1701617041_
               (lambda ()
                 (if (gx#stx-pair? _e1701517022_)
@@ -103,7 +147,7 @@
       (let* ((_e1698516992_ _stx16984_)
              (_E1698716996_
               (lambda ()
-                (gx#raise-syntax-error '#f '"Bad syntax" _e1698516992_)))
+                (gx#raise-syntax-error '#f '" top beg foreign% Bad syntax" _e1698516992_)))
              (_E1698617010_
               (lambda ()
                 (if (gx#stx-pair? _e1698516992_)
@@ -121,7 +165,7 @@
       (let* ((_e1693116944_ _stx16930_)
              (_E1693316948_
               (lambda ()
-                (gx#raise-syntax-error '#f '"Bad syntax" _e1693116944_)))
+                (gx#raise-syntax-error '#f '" top annotation Bad syntax" _e1693116944_)))
              (_E1693216980_
               (lambda ()
                 (if (gx#stx-pair? _e1693116944_)
@@ -156,7 +200,7 @@
       (let* ((_e1690116908_ _stx16900_)
              (_E1690316912_
               (lambda ()
-                (gx#raise-syntax-error '#f '"Bad syntax" _e1690116908_)))
+                (gx#raise-syntax-error '#f '"top impoty Bad syntax" _e1690116908_)))
              (_E1690216926_
               (lambda ()
                 (if (gx#stx-pair? _e1690116908_)
@@ -174,7 +218,7 @@
       (let* ((_e1685816868_ _stx16857_)
              (_E1686016872_
               (lambda ()
-                (gx#raise-syntax-error '#f '"Bad syntax" _e1685816868_)))
+                (gx#raise-syntax-error '#f '"top module Bad syntax" _e1685816868_)))
              (_E1685916896_
               (lambda ()
                 (if (gx#stx-pair? _e1685816868_)
@@ -207,7 +251,7 @@
       (let* ((_e1682816835_ _stx16827_)
              (_E1683016839_
               (lambda ()
-                (gx#raise-syntax-error '#f '"Bad syntax" _e1682816835_)))
+                (gx#raise-syntax-error '#f '"top export Bad syntax" _e1682816835_)))
              (_E1682916853_
               (lambda ()
                 (if (gx#stx-pair? _e1682816835_)
@@ -225,7 +269,7 @@
       (let* ((_e1679816805_ _stx16797_)
              (_E1680016809_
               (lambda ()
-                (gx#raise-syntax-error '#f '"Bad syntax" _e1679816805_)))
+                (gx#raise-syntax-error '#f '"top provide Bad syntax" _e1679816805_)))
              (_E1679916823_
               (lambda ()
                 (if (gx#stx-pair? _e1679816805_)
@@ -240,10 +284,11 @@
         (_E1679916823_))))
   (define gx#core-compile-top-extern%
     (lambda (_stx16767_)
+      ;; (displayln "Compile extern " _stx16767_)
       (let* ((_e1676816775_ _stx16767_)
              (_E1677016779_
               (lambda ()
-                (gx#raise-syntax-error '#f '"Bad syntax" _e1676816775_)))
+                (gx#raise-syntax-error '#f '"top extrn Bad syntax" _e1676816775_)))
              (_E1676916793_
               (lambda ()
                 (if (gx#stx-pair? _e1676816775_)
@@ -261,7 +306,7 @@
       (let* ((_e1671416727_ _stx16713_)
              (_E1671616731_
               (lambda ()
-                (gx#raise-syntax-error '#f '"Bad syntax" _e1671416727_)))
+                (gx#raise-syntax-error '#f '"top define Bad syntax" _e1671416727_)))
              (_E1671516763_
               (lambda ()
                 (if (gx#stx-pair? _e1671416727_)
@@ -285,11 +330,11 @@
                                                 (if '#t
                                                     (cons '%#define-values
                                                           (cons (gx#stx-map1
-;;<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-                         gx#core-compile-top-runtime-bind
-                         _hd16751_)
-                        (cons (gx#core-compile-top-syntax _expr16761_) '())))
-;;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+                                                                 ;;<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+                                                                 gx#core-compile-top-runtime-bind
+                                                                 _hd16751_)
+                                                                (cons (gx#core-compile-top-syntax _expr16761_) '())))
+                                                    ;;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
                                                     (_E1671616731_))
                                                 (_E1671616731_)))))
                                       (_E1671616731_)))))
@@ -301,7 +346,7 @@
       (let* ((_e1665916672_ _stx16658_)
              (_E1666116676_
               (lambda ()
-                (gx#raise-syntax-error '#f '"Bad syntax" _e1665916672_)))
+                (gx#raise-syntax-error '#f '"to define symtax Bad syntax" _e1665916672_)))
              (_E1666016709_
               (lambda ()
                 (if (gx#stx-pair? _e1665916672_)
@@ -326,13 +371,13 @@
                                                     (cons '%#define-syntax
                                                           (cons _hd16696_
                                                                 (cons (call-with-parameters
-;;<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-                               (lambda ()
-                                 (gx#core-compile-top-syntax _expr16706_))
-                               gx#current-expander-phi
-                               (fx+ (gx#current-expander-phi) '1))
-                              '())))
-;;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+                                                                       ;;<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+                                                                       (lambda ()
+                                                                         (gx#core-compile-top-syntax _expr16706_))
+                                                                       gx#current-expander-phi
+                                                                       (fx+ (gx#current-expander-phi) '1))
+                                                                      '())))
+                                                    ;;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
                                                     (_E1666116676_))
                                                 (_E1666116676_)))))
                                       (_E1666116676_)))))
@@ -344,7 +389,7 @@
       (let* ((_e1662916636_ _stx16628_)
              (_E1663116640_
               (lambda ()
-                (gx#raise-syntax-error '#f '"Bad syntax" _e1662916636_)))
+                (gx#raise-syntax-error '#f '"top alias Bad syntax" _e1662916636_)))
              (_E1663016654_
               (lambda ()
                 (if (gx#stx-pair? _e1662916636_)
@@ -362,7 +407,7 @@
       (let* ((_e1659916606_ _stx16598_)
              (_E1660116610_
               (lambda ()
-                (gx#raise-syntax-error '#f '"Bad syntax" _e1659916606_)))
+                (gx#raise-syntax-error '#f '"top define runine Bad syntax" _e1659916606_)))
              (_E1660016624_
               (lambda ()
                 (if (gx#stx-pair? _e1659916606_)
@@ -380,7 +425,7 @@
       (let* ((_e1656916576_ _stx16568_)
              (_E1657116580_
               (lambda ()
-                (gx#raise-syntax-error '#f '"Bad syntax" _e1656916576_)))
+                (gx#raise-syntax-error '#f '"top declare Bad syntax" _e1656916576_)))
              (_E1657016594_
               (lambda ()
                 (if (gx#stx-pair? _e1656916576_)
@@ -398,7 +443,7 @@
       (let* ((_e1653916546_ _stx16538_)
              (_E1654116550_
               (lambda ()
-                (gx#raise-syntax-error '#f '"Bad syntax" _e1653916546_)))
+                (gx#raise-syntax-error '#f '"top lambda Bad syntax" _e1653916546_)))
              (_E1654016564_
               (lambda ()
                 (if (gx#stx-pair? _e1653916546_)
@@ -418,7 +463,7 @@
       (let* ((_e1649616506_ _stx16495_)
              (_E1649816510_
               (lambda ()
-                (gx#raise-syntax-error '#f '"Bad syntax" _e1649616506_)))
+                (gx#raise-syntax-error '#f '"top lambda clause Bad syntax" _e1649616506_)))
              (_E1649716534_
               (lambda ()
                 (if (gx#stx-pair? _e1649616506_)
@@ -450,7 +495,7 @@
       (let* ((_e1646616473_ _stx16465_)
              (_E1646816477_
               (lambda ()
-                (gx#raise-syntax-error '#f '"Bad syntax" _e1646616473_)))
+                (gx#raise-syntax-error '#f '"top case lambda Bad syntax" _e1646616473_)))
              (_E1646716491_
               (lambda ()
                 (if (gx#stx-pair? _e1646616473_)
@@ -471,7 +516,7 @@
       (let* ((_e1640216415_ _stx16400_)
              (_E1640416419_
               (lambda ()
-                (gx#raise-syntax-error '#f '"Bad syntax" _e1640216415_)))
+                (gx#raise-syntax-error '#f '"top let values Bad syntax" _e1640216415_)))
              (_E1640316451_
               (lambda ()
                 (if (gx#stx-pair? _e1640216415_)
@@ -495,11 +540,11 @@
                                                 (if '#t
                                                     (cons _form16401_
                                                           (cons (gx#stx-map1
-;;<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-                         gx#core-compile-top-lambda-clause
-                         _hd16439_)
-                        (cons (gx#core-compile-top-syntax _body16449_) '())))
-;;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+                                                                 ;;<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+                                                                 gx#core-compile-top-lambda-clause
+                                                                 _hd16439_)
+                                                                (cons (gx#core-compile-top-syntax _body16449_) '())))
+                                                    ;;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
                                                     (_E1640416419_))
                                                 (_E1640416419_)))))
                                       (_E1640416419_)))))
@@ -532,7 +577,7 @@
       (let* ((_e1635516365_ _stx16354_)
              (_E1635716369_
               (lambda ()
-                (gx#raise-syntax-error '#f '"Bad syntax" _e1635516365_)))
+                (gx#raise-syntax-error '#f '"top quote Bad syntax" _e1635516365_)))
              (_E1635616391_
               (lambda ()
                 (if (gx#stx-pair? _e1635516365_)
@@ -560,7 +605,7 @@
       (let* ((_e1631416324_ _stx16313_)
              (_E1631616328_
               (lambda ()
-                (gx#raise-syntax-error '#f '"Bad syntax" _e1631416324_)))
+                (gx#raise-syntax-error '#f '"top quote syntax Bad syntax" _e1631416324_)))
              (_E1631516350_
               (lambda ()
                 (if (gx#stx-pair? _e1631416324_)
@@ -588,7 +633,7 @@
       (let* ((_e1627116281_ _stx16270_)
              (_E1627316285_
               (lambda ()
-                (gx#raise-syntax-error '#f '"Bad syntax" _e1627116281_)))
+                (gx#raise-syntax-error '#f '"top call Bad syntax" _e1627116281_)))
              (_E1627216309_
               (lambda ()
                 (if (gx#stx-pair? _e1627116281_)
@@ -617,7 +662,7 @@
       (let* ((_e1620416220_ _stx16203_)
              (_E1620616224_
               (lambda ()
-                (gx#raise-syntax-error '#f '"Bad syntax" _e1620416220_)))
+                (gx#raise-syntax-error '#f '"to if Bad syntax" _e1620416220_)))
              (_E1620516266_
               (lambda ()
                 (if (gx#stx-pair? _e1620416220_)
@@ -651,15 +696,15 @@
                                                            _tl1621816261_)
                                                           (if '#t
                                                               (cons '%#if
-;;<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-                            (cons (gx#core-compile-top-syntax _test16244_)
-                                  (cons (gx#core-compile-top-syntax _K16254_)
-                                        (cons (gx#core-compile-top-syntax
-                                               _E16264_)
-                                              '()))))
-                      (_E1620616224_))
-                  (_E1620616224_)))))
-;;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+                                                                    ;;<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+                                                                    (cons (gx#core-compile-top-syntax _test16244_)
+                                                                          (cons (gx#core-compile-top-syntax _K16254_)
+                                                                                (cons (gx#core-compile-top-syntax
+                                                                                       _E16264_)
+                                                                                      '()))))
+                                                              (_E1620616224_))
+                                                          (_E1620616224_)))))
+                                                ;;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
                                                 (_E1620616224_)))))
                                       (_E1620616224_)))))
                             (_E1620616224_))))
@@ -670,7 +715,7 @@
       (let* ((_e1616316173_ _stx16162_)
              (_E1616516177_
               (lambda ()
-                (gx#raise-syntax-error '#f '"Bad syntax" _e1616316173_)))
+                (gx#raise-syntax-error '#f '"top ref Bad syntax" _e1616316173_)))
              (_E1616416199_
               (lambda ()
                 (if (gx#stx-pair? _e1616316173_)
@@ -698,7 +743,7 @@
       (let* ((_e1610916122_ _stx16108_)
              (_E1611116126_
               (lambda ()
-                (gx#raise-syntax-error '#f '"Bad syntax" _e1610916122_)))
+                (gx#raise-syntax-error '#f '"top setq Bad syntax" _e1610916122_)))
              (_E1611016158_
               (lambda ()
                 (if (gx#stx-pair? _e1610916122_)
@@ -722,10 +767,10 @@
                                                 (if (gx#identifier? _id16146_)
                                                     (cons '%#set!
                                                           (cons (gx#core-compile-top-runtime-ref
-;;<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-                         _id16146_)
-                        (cons (gx#core-compile-top-syntax _expr16156_) '())))
-;;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+                                                                 ;;<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+                                                                 _id16146_)
+                                                                (cons (gx#core-compile-top-syntax _expr16156_) '())))
+                                                    ;;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
                                                     (_E1611116126_))
                                                 (_E1611116126_)))))
                                       (_E1611116126_)))))

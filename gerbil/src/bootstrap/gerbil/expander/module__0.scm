@@ -1,6 +1,16 @@
-(declare (block) (standard-bindings) (extended-bindings)
-         ;; (debug) (debug-location) (debug-source) (debug-environments)
-         )
+#;(declare (block) (standard-bindings) (extended-bindings))
+(declare
+ ;; (block)
+ (standard-bindings) (extended-bindings)
+
+  (not inline)
+  ;; (debug)
+  ;; (debug-location)
+  ;; (debug-source)
+  ;; (debug-environments)
+ )
+
+
 (begin
   (declare (safe))
   (define gx#module-import::t
@@ -375,9 +385,13 @@
                 gx#import-module
                 _g16015_))))))
   (define gx#eval-module
-    (lambda (_mod15008_) ((gx#current-expander-module-eval) _mod15008_)))
+    (lambda (_mod15008_)
+      #;(displayln "Eval Module With "
+                 (gx#current-expander-module-eval))
+      ((gx#current-expander-module-eval) _mod15008_)))
   (define gx#core-eval-module
     (lambda (_obj14993_)
+      ;; (displayln "Core Eval! " (gx#expander-context-id  _obj14993_))
       (letrec ((_force-e14995_
                 (lambda (_getf15004_ _e15005_)
                   (call-with-parameters
@@ -438,8 +452,15 @@
                      __obj16008)))
               (table-set! _ht14968_ _ctx14966_ _pre14973_)
               _pre14973_)))))
+
+  (define gx#dbug-import-modules '())
   (define gx#core-import-module__%
     (lambda (_rpath14847_ _reload?14848_)
+      ;; (displayln "Core Import Module %" _rpath14874_)
+      (set! gx#dbug-import-modules
+            (cons (cons _rpath14847_ _reload?14848_)
+                  gx#dbug-import-modules))
+
       (letrec ((_import-source14850_
                 (lambda (_path14935_)
                   (if (member _path14935_ (gx#current-expander-path))
@@ -480,12 +501,12 @@
                                                          _$e14943_
                                                          (let ((__obj16009
                                                                 (make-object
-;;<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-                         gx#prelude-context::t
-                         '8)))
-                   (gx#prelude-context:::init!__0 __obj16009 '#f)
-                   __obj16009)))
-;;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+                                                                 ;;<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+                                                                 gx#prelude-context::t
+                                                                 '8)))
+                                                           (gx#prelude-context:::init!__0 __obj16009 '#f)
+                                                           __obj16009)))
+                                                   ;;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
                                                    (error '"Cannot import module; unknown prelude"
                                                           _rpath14847_
                                                           _pre14938_))))))

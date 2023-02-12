@@ -82,18 +82,26 @@
   (make-parameter #f))
 (define &current-module-registry
   (make-parameter #f))
-
+(define (gx#dbug)
+  (with-exception-catcher
+   (lambda _ _)
+   (lambda () (##eval '(gx#dbg-core-cxt)))))
 (define (load-module modpath #!optional (reload? #f))
+  (gx#dbug)
   (cond
    ((and (not reload?) (hash-get (&current-module-registry) modpath))
     => values)
    ((find-library-module modpath)
     => (lambda (path)
+
+  ;; (gx#dbug)
          (let ((lpath (load path)))
+  ;; (gx#dbug)
            (hash-put! (&current-module-registry) modpath lpath)
            lpath)))
    (else
     (error "Cannot load module; not found" modpath))))
+
 
 (define (find-library-module modpath)
   (define (find-compiled-file npath)
@@ -101,8 +109,8 @@
       (let lp ((current #f) (n 1))
         (let ((next (%%string-append basepath (##number->string n))))
           (if (##file-exists? next)
-            (lp next (%%fx+ n 1))
-            current)))))
+              (lp next (%%fx+ n 1))
+              current)))))
 
   (define (find-source-file npath)
     (let ((spath (%%string-append npath ".scm")))
@@ -110,13 +118,13 @@
 
   (let lp ((rest (&current-module-libpath)))
     (core-match rest
-      ((dir . rest)
-       (let ((npath (path-expand modpath (path-expand dir))))
-         (cond
-          ((find-compiled-file npath) => path-normalize)
-          ((find-source-file npath) => path-normalize)
-          (else (lp rest)))))
-      (else #f))))
+                ((dir . rest)
+                 (let ((npath (path-expand modpath (path-expand dir))))
+                   (cond
+                    ((find-compiled-file npath) => path-normalize)
+                    ((find-source-file npath) => path-normalize)
+                    (else (lp rest)))))
+                (else #f))))
 
 (define (file-newer? file1 file2)
   (define (modification-time file)
@@ -856,9 +864,11 @@
 (define (bind-method! klass id proc #!optional (rebind? #t))
   (define (bind! ht)
     (if (and (not rebind?) (hash-get ht id))
-      (error "Method already bound" klass id)
-      (hash-put! ht id proc)))
+        (error "Method already bound" klass id)
+        (hash-put! ht id proc)))
 
+  #;(map display (list " **** binding method " id " on " klass "? "
+       (and proc #t) " Rebind:" rebind? "\n"))
   (unless (procedure? proc)
     (error "Bad method; expected procedure" proc))
 
@@ -866,10 +876,10 @@
    ((type-descriptor? klass)
     (let ((ht (type-descriptor-methods klass)))
       (if ht
-        (bind! ht)
-        (let ((ht (make-hash-table-eq)))
-          (type-descriptor-methods-set! klass ht)
-          (bind! ht)))))
+          (bind! ht)
+          (let ((ht (make-hash-table-eq)))
+            (type-descriptor-methods-set! klass ht)
+            (bind! ht)))))
    ((%%type? klass)
     (let ((ht
            (cond

@@ -718,6 +718,8 @@
         (gx#core-expand__% _stx8937_ _expression?8939_))))
   (define gx#core-expand
     (lambda _g9349_
+      ;; (displayln "In Core Expand" _g9349_)
+      ;; (##force-output)
       (let ((_g9348_ (length _g9349_)))
         (cond ((##fx= _g9348_ 1) (apply gx#core-expand__0 _g9349_))
               ((##fx= _g9348_ 2) (apply gx#core-expand__% _g9349_))

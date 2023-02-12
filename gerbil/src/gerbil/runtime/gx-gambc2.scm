@@ -4,11 +4,23 @@
 (##namespace (""))
 ;; (include "gx-gambc#.scm")
 
-(declare
-  (block)
-  (standard-bindings)
-  (extended-bindings))
+;; (declare
+;;   (block)
+;;   (standard-bindings)
+;;   (extended-bindings))
 (declare (safe))
+
+(declare
+ ;; (block)
+ (standard-bindings) (extended-bindings)
+
+ (not inline)
+ ;; (debug)
+ ;; (debug-location)
+ ;; (debug-source)
+ ;; (debug-environments)
+ )
+
 
 ;; core [top] syntax -> gambit runtime compiler
 (define-macro (%AST? e)
@@ -45,14 +57,18 @@
   `(_gx#vector-ref ,obj 1))
 
 (define (_gx#compile stx)
-  (core-ast-case stx ()
-    ((form . _)
-     (cond
-      ((&core-resolve form)
-       => (lambda (bind)
-            ((%&syntax-e bind) stx)))
-      (else
-       (_gx#raise-syntax-error #f "Bad syntax" stx form))))))
+  ;; (displayln "Now in _gx#compile in gambc2")
+  (core-ast-case
+   stx ()
+   ((form . _)
+    ;; (displayln "resulving form " form (&core-resolve form))
+    (cond
+     ((&core-resolve form)
+      => (lambda (bind)
+           ;; (displayln "Form resolved " bind (%&syntax-e bind))
+           ((%&syntax-e bind) stx)))
+     (else
+      (_gx#raise-syntax-error #f "Bad syntax" stx form))))))
 
 (define (_gx#compile-error stx #!optional (detail #f))
   (_gx#raise-syntax-error 'compile "Bad syntax; cannot compile" stx detail))
