@@ -1,12 +1,4 @@
-(declare (block) (standard-bindings) (extended-bindings)
-         (inlining-limit 200))
-
-#;(declare
- (not inline)
- (debug)
- (debug-location)
- (debug-source)
- (debug-environments))
+(declare (block) (standard-bindings) (extended-bindings) (inlining-limit 200))
 (begin
   (define |gxc[1]#_g15503_|
     (##structure
@@ -165,7 +157,6 @@
   (begin
     (define |gxc[:0:]#defcompile-method|
       (lambda (_$stx4800_)
-        ;; (displayln "In  |gxc[:0:]#defcompile-method now")
         (let* ((___stx1442914430_ _$stx4800_)
                (_g48064886_
                 (lambda ()
@@ -186,53 +177,53 @@
                                                         '#f
                                                         'let)
                                                        (cons (cons (gx#datum->syntax__0
-                                                                    ;;<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-                                                                    '#f
-                                                                    'tbl)
-                                                                   (cons (cons (gx#datum->syntax__0
-                                                                                '#f
-                                                                                'make-hash-table-eq)
-                                                                               '())
-                                                                         '()))
-                                                             (foldr1 (lambda (_g51265132_ _g51275135_)
-                                                                       (cons (cons (gx#datum->syntax__0
-                                                                                    '#f
-                                                                                    'hash-copy!)
-                                                                                   (cons (gx#datum->syntax__0 '#f 'tbl)
-                                                                                         (cons (cons (gx#datum->syntax__0
-                                                                                                      '#f
-                                                                                                      'force)
-                                                                                                     (cons _g51265132_
-                                                                                                           ;;<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-                                                                                                           '()))
-                                                                                               '())))
-                                                                             ;;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-                                                                             _g51275135_))
-                                                                     (begin
-                                                                       (gx#syntax-check-splice-targets _L5095_ _L5097_)
-                                                                       (foldr2 (lambda (_g51285138_
-                                                                                        _g51295141_
-                                                                                        _g51305143_)
-                                                                                 (cons (cons (gx#datum->syntax__0
-                                                                                              '#f
-                                                                                              'hash-put!)
-                                                                                             (cons (gx#datum->syntax__0
-                                                                                                    '#f
-                                                                                                    'tbl)
-                                                                                                   (cons (cons (gx#datum->syntax__0
-                                                                                                                ;;<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-                                                                                                                '#f
-                                                                                                                'quote)
-                                                                                                               (cons _g51295141_ '()))
-                                                                                                         (cons _g51285138_ '()))))
-                                                                                       ;;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-                                                                                       _g51305143_))
-                                                                               (cons (gx#datum->syntax__0 '#f 'tbl)
-                                                                                     '())
-                                                                               _L5095_
-                                                                               _L5097_))
-                                                                     _L5098_)))
-                                                 ;;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+;;<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+                            '#f
+                            'tbl)
+                           (cons (cons (gx#datum->syntax__0
+                                        '#f
+                                        'make-hash-table-eq)
+                                       '())
+                                 '()))
+                     (foldr1 (lambda (_g51265132_ _g51275135_)
+                               (cons (cons (gx#datum->syntax__0
+                                            '#f
+                                            'hash-copy!)
+                                           (cons (gx#datum->syntax__0 '#f 'tbl)
+                                                 (cons (cons (gx#datum->syntax__0
+                                                              '#f
+                                                              'force)
+                                                             (cons _g51265132_
+;;<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+                           '()))
+               '())))
+;;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+                                     _g51275135_))
+                             (begin
+                               (gx#syntax-check-splice-targets _L5095_ _L5097_)
+                               (foldr2 (lambda (_g51285138_
+                                                _g51295141_
+                                                _g51305143_)
+                                         (cons (cons (gx#datum->syntax__0
+                                                      '#f
+                                                      'hash-put!)
+                                                     (cons (gx#datum->syntax__0
+                                                            '#f
+                                                            'tbl)
+                                                           (cons (cons (gx#datum->syntax__0
+;;<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+                                '#f
+                                'quote)
+                               (cons _g51295141_ '()))
+                         (cons _g51285138_ '()))))
+;;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+                                               _g51305143_))
+                                       (cons (gx#datum->syntax__0 '#f 'tbl)
+                                             '())
+                                       _L5095_
+                                       _L5097_))
+                             _L5098_)))
+;;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
                                                  '()))
                                      '())))))
                 (___kont1444014441_
@@ -254,29 +245,29 @@
                                                               '#f
                                                               'parameterize)
                                                              (cons (cons (cons (gx#datum->syntax__0
-                                                                                ;;<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-                                                                                '#f
-                                                                                'current-compile-methods)
-                                                                               (cons (cons (gx#datum->syntax__0
-                                                                                            '#f
-                                                                                            'force)
-                                                                                           (cons _L4936_ '()))
-                                                                                     '()))
-                                                                         '())
-                                                                   (cons (cons (gx#datum->syntax__0 '#f 'apply)
-                                                                               (cons (gx#datum->syntax__0
-                                                                                      '#f
-                                                                                      'compile-e)
-                                                                                     (cons (gx#datum->syntax__0
-                                                                                            '#f
-                                                                                            'stx)
-                                                                                           (cons (gx#datum->syntax__0
-                                                                                                  '#f
-                                                                                                  'args)
-                                                                                                 '()))))
-                                                                         '())))
-                                                       '())))
-                                     ;;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+;;<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+                                        '#f
+                                        'current-compile-methods)
+                                       (cons (cons (gx#datum->syntax__0
+                                                    '#f
+                                                    'force)
+                                                   (cons _L4936_ '()))
+                                             '()))
+                                 '())
+                           (cons (cons (gx#datum->syntax__0 '#f 'apply)
+                                       (cons (gx#datum->syntax__0
+                                              '#f
+                                              'compile-e)
+                                             (cons (gx#datum->syntax__0
+                                                    '#f
+                                                    'stx)
+                                                   (cons (gx#datum->syntax__0
+                                                          '#f
+                                                          'args)
+                                                         '()))))
+                                 '())))
+               '())))
+;;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
                                      '()))))))
             (let* ((___match1452214523_
                     (lambda (_e48694893_
@@ -352,81 +343,81 @@
                                                 (if (gx#stx-null? _tl48495044_)
                                                     (letrec ((_loop48505047_
                                                               (lambda (_hd48485051_
-                                                                       ;;<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-                                                                       _method48545054_
-                                                                       _symbol48555056_)
-                                                                (if (gx#stx-pair? _hd48485051_)
-                                                                    (let ((_e48515059_ (gx#syntax-e _hd48485051_)))
-                                                                      (let ((_lp-tl48535066_ (##cdr _e48515059_))
-                                                                            (_lp-hd48525063_ (##car _e48515059_)))
-                                                                        (if (gx#stx-pair? _lp-hd48525063_)
-                                                                            (let ((_e48585069_
-                                                                                   (gx#syntax-e _lp-hd48525063_)))
-                                                                              (let ((_tl48605076_ (##cdr _e48585069_))
-                                                                                    (_hd48595073_ (##car _e48585069_)))
-                                                                                (if (gx#stx-pair? _tl48605076_)
-                                                                                    (let ((_e48615079_
-                                                                                           (gx#syntax-e _tl48605076_)))
-                                                                                      (let ((_tl48635086_
-                                                                                             (##cdr _e48615079_))
-                                                                                            (_hd48625083_
-                                                                                             (##car _e48615079_)))
-                                                                                        (if (gx#stx-null? _tl48635086_)
-                                                                                            (_loop48505047_
-                                                                                             _lp-tl48535066_
-                                                                                             (cons _hd48625083_
-                                                                                                   _method48545054_)
-                                                                                             (cons _hd48595073_
-                                                                                                   _symbol48555056_))
-                                                                                            (___match1452214523_
-                                                                                             _e48254967_
-                                                                                             _hd48264971_
-                                                                                             _tl48274974_
-                                                                                             _e48284977_
-                                                                                             _hd48294981_
-                                                                                             _tl48304984_
-                                                                                             _e48324991_
-                                                                                             _hd48334995_
-                                                                                             _tl48344998_
-                                                                                             _e48355001_
-                                                                                             _hd48365005_
-                                                                                             _tl48375008_))))
-                                                                                    (___match1452214523_
-                                                                                     _e48254967_
-                                                                                     _hd48264971_
-                                                                                     _tl48274974_
-                                                                                     _e48284977_
-                                                                                     _hd48294981_
-                                                                                     _tl48304984_
-                                                                                     _e48324991_
-                                                                                     _hd48334995_
-                                                                                     _tl48344998_
-                                                                                     _e48355001_
-                                                                                     _hd48365005_
-                                                                                     _tl48375008_))))
-                                                                            (___match1452214523_
-                                                                             _e48254967_
-                                                                             _hd48264971_
-                                                                             _tl48274974_
-                                                                             _e48284977_
-                                                                             _hd48294981_
-                                                                             _tl48304984_
-                                                                             _e48324991_
-                                                                             _hd48334995_
-                                                                             _tl48344998_
-                                                                             _e48355001_
-                                                                             _hd48365005_
-                                                                             _tl48375008_))))
-                                                                    (let ((_symbol48575092_ (reverse _symbol48555056_))
-                                                                          (_method48565089_
-                                                                           (reverse _method48545054_)))
-                                                                      (___kont1443414435_
-                                                                       _method48565089_
-                                                                       _symbol48575092_
-                                                                       _super48465037_
-                                                                       _hd48365005_))))))
-                                                      (_loop48505047_ _target48475041_ '() '()))
-                                                    ;;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+;;<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+                               _method48545054_
+                               _symbol48555056_)
+                        (if (gx#stx-pair? _hd48485051_)
+                            (let ((_e48515059_ (gx#syntax-e _hd48485051_)))
+                              (let ((_lp-tl48535066_ (##cdr _e48515059_))
+                                    (_lp-hd48525063_ (##car _e48515059_)))
+                                (if (gx#stx-pair? _lp-hd48525063_)
+                                    (let ((_e48585069_
+                                           (gx#syntax-e _lp-hd48525063_)))
+                                      (let ((_tl48605076_ (##cdr _e48585069_))
+                                            (_hd48595073_ (##car _e48585069_)))
+                                        (if (gx#stx-pair? _tl48605076_)
+                                            (let ((_e48615079_
+                                                   (gx#syntax-e _tl48605076_)))
+                                              (let ((_tl48635086_
+                                                     (##cdr _e48615079_))
+                                                    (_hd48625083_
+                                                     (##car _e48615079_)))
+                                                (if (gx#stx-null? _tl48635086_)
+                                                    (_loop48505047_
+                                                     _lp-tl48535066_
+                                                     (cons _hd48625083_
+                                                           _method48545054_)
+                                                     (cons _hd48595073_
+                                                           _symbol48555056_))
+                                                    (___match1452214523_
+                                                     _e48254967_
+                                                     _hd48264971_
+                                                     _tl48274974_
+                                                     _e48284977_
+                                                     _hd48294981_
+                                                     _tl48304984_
+                                                     _e48324991_
+                                                     _hd48334995_
+                                                     _tl48344998_
+                                                     _e48355001_
+                                                     _hd48365005_
+                                                     _tl48375008_))))
+                                            (___match1452214523_
+                                             _e48254967_
+                                             _hd48264971_
+                                             _tl48274974_
+                                             _e48284977_
+                                             _hd48294981_
+                                             _tl48304984_
+                                             _e48324991_
+                                             _hd48334995_
+                                             _tl48344998_
+                                             _e48355001_
+                                             _hd48365005_
+                                             _tl48375008_))))
+                                    (___match1452214523_
+                                     _e48254967_
+                                     _hd48264971_
+                                     _tl48274974_
+                                     _e48284977_
+                                     _hd48294981_
+                                     _tl48304984_
+                                     _e48324991_
+                                     _hd48334995_
+                                     _tl48344998_
+                                     _e48355001_
+                                     _hd48365005_
+                                     _tl48375008_))))
+                            (let ((_symbol48575092_ (reverse _symbol48555056_))
+                                  (_method48565089_
+                                   (reverse _method48545054_)))
+                              (___kont1443414435_
+                               _method48565089_
+                               _symbol48575092_
+                               _super48465037_
+                               _hd48365005_))))))
+              (_loop48505047_ _target48475041_ '() '()))
+;;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
                                                     (___match1452214523_
                                                      _e48254967_
                                                      _hd48264971_
@@ -632,9 +623,9 @@
                                                  (cons |gxc[1]#_g15511_|
                                                        (cons |gxc[1]#_g15512_|
                                                              (cons |gxc[1]#_g15513_|
-                                                                   ;;<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-                                                                   '()))))
-                                           ;;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+;;<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+                           '()))))
+;;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
                                            '()))))))
        'type-exhibitor:
        (|gerbil/core$<MOP>$<MOP:2>[1]#make-runtime-struct-exhibitor|
@@ -662,9 +653,9 @@
                                                  (cons |gxc[1]#_g15522_|
                                                        (cons |gxc[1]#_g15523_|
                                                              (cons |gxc[1]#_g15524_|
-                                                                   ;;<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-                                                                   '()))))
-                                           ;;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+;;<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+                           '()))))
+;;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
                                            '()))))))
        'type-exhibitor:
        (|gerbil/core$<MOP>$<MOP:2>[1]#make-runtime-struct-exhibitor|
@@ -674,7 +665,3 @@
         '#f
         '()
         '(ctx phi n code))))))
-
-;;  Debug Here
-(gx#dbg-core-cxt)
-(display "Loaded comp1\n")

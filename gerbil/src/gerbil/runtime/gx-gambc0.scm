@@ -1159,7 +1159,96 @@
     (if (null? rest) hd
         (apply hash-copy! hd rest))))
 
+
+
+(cond-expand
+
+ ((compilation-target js)
+  (begin
+    (define (table-merge! table1
+                          table2
+                          #!optional
+                          (table2-takes-precedence? #f))
+      (if table2-takes-precedence?
+          (table-for-each
+           (lambda (k v)
+             (table-set! table1 k v))
+           table2)
+          (table-for-each
+           (lambda (k v)
+             (if (eq? (table-ref table1 k (macro-unused-obj))
+                      (macro-unused-obj))
+                 (table-set! table1 k v)))
+           table2))
+      table1)
+
+
+    (define (copy-file from to)
+      (##inline-host-declaration "
+@gx_copy_file@ = (scm_from, scm_to) => {
+ let from = @scm2host@(scm_from), to = @scm2host@(scm_to)
+const { cpSync } = require('node:fs');
+ console.log('Copy File', from, to)
+ return cpSync(from, to);
+}")
+      (##inline-host-expression "@gx_copy_file@(@1@, @2@)"
+                                from to))
+
+
+    (define (open-process path-or-settings)
+      (##inline-host-declaration "
+@gx_open_process@ = (path_or_settings_scm) => {
+if (typeof window !== 'undefined') {
+  return(-1);
+} else {
+  const { spawn } = require('node:child_process');
+
+  function cmd(...command) {
+   let p = spawn(...command);
+    return new Promise((resolveFunc) => {
+    p.stdout.on(\"data\", (x) => {
+      process.stdout.write(x.toString());
+    });
+    p.stderr.on(\"data\", (x) => {
+      process.stderr.write(x.toString());
+    });
+    p.on(\"close\", (code) => {
+      console.log(`child process exited with code ${code}`);
+      resolveFunc(code);
+    });
+  });
+}
+
+
+  // convert the arg list into an object
+  var array = @scm2host@(path_or_settings_scm);
+  var args = {};
+
+  array.forEach(function(item, index) {
+    if(index % 2 === 0) {
+       args[item] = array[index + 1];
+    }
+  });
+
+
+  const gsc = cmd(args.path, args.arguments);
+  console.log('gx-open-process',args, gsc.child)
+
+  return @host2scm@(gsc);
+}
+
+};
+")
+      (##inline-host-expression "@gx_open_process@(@1@)"
+                                path-or-settings))
+
+    (define (process-status proc)
+      (displayln "We have a process/promise, yeah?" proc)
+      (##scm2host-call-return proc)))))
+
+
 (define (hash-copy! hd . rest)
+  ;; (displayln "In hash copy" table-merge!)
   (for-each (lambda (r) (table-merge! hd r)) rest)
   hd)
 

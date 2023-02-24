@@ -1,7 +1,12 @@
 #!/usr/bin/env gxi
 ;; -*- Gerbil -*-
 
+(displayln "Lookinog for this-source-file"
+           (this-source-file)
+           (path-normalize (path-directory (this-source-file)))
+           )
 (def srcdir (path-normalize (path-directory (this-source-file))))
+(displayln "So, srcdir here yeah?" srcdir)
 (def libdir (path-expand "lib" (getenv "GERBIL_HOME")))
 (add-load-path srcdir)
 

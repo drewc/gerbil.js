@@ -1,12 +1,4 @@
 (declare (block) (standard-bindings) (extended-bindings))
-(declare
- (not inline)
- (debug)
- (debug-location)
- (debug-source)
- (debug-environments))
-(displayln "Loading Optinize Now")
-(gx#dbg-core-cxt)
 (begin
   (define gxc#optimizer-info-init!
     (lambda ()

@@ -1,0 +1,460 @@
+#+title: Restart again, going in the right direction
+#+date: <2023-02-11 19:51>
+#+description:
+#+filetags:
+
+
+Hopefully it's just the vectors and the build.
+
+* Reset bootstrap
+
+
+#+begin_src sh
+  git checkout 2d8c03186c9 -- ../gerbil/src/bootstrap/
+#+end_src
+
+#+begin_src bash
+  cd ../gerbil/src/bootstrap/
+  StarSed() {
+      echo "s/##vector-$1/_gx#vector-$1/g"
+  }
+
+  find . -name "*.s*" -exec sed -i "$(StarSed ref)" {} \;
+  find . -name "*.s*" -exec sed -i "$(StarSed 'set!')" {} \;
+  find . -name "*.s*" -exec sed -i "$(StarSed length)" {} \;
+  find . -name "*.s*" -exec sed -i "$(StarSed '>list')" {} \;
+#+end_src
+
+* First Error
+
+#+begin_example
+,*** ERROR IN hash-copy! -- Operator is not a PROCEDURE
+(#!void '#<table #2> '#<table #3>)
+> ,b
+0  hash-copy!
+1  hash-copy!
+2  /home/drewc/me/MuKn/src/gerbil.js/gerbil/bootstrap/lib/gerbil/compiler/compile__0.scm# "../bootstrap/lib/gerbil/compiler/compile__0.scm"@90:10
+3  ##force-out-of-line
+4  /home/drewc/me/MuKn/src/gerbil.js/gerbil/bootstrap/lib/gerbil/compiler/optimize-xform__0.scm#
+5  ##force-out-of-line
+6  gxc#apply-collect-mutators
+7  gxc#optimize!
+8  gxc#compile-top-module
+9  for-each
+10 (interaction)           "build/build1.ss"@80:2  (compile-group gerbil-mod...
+11 ##load
+12 ##load
+13 ##main-gsi/gsc
+>
+#+end_example
+
+That's pretty easy.
+
+Our thing has this
+
+#+begin_src scheme
+(define (hash-copy! hd . rest)
+  (for-each (lambda (r) (table-merge! hd r)) rest)
+  hd)
+#+end_src
+
+#+begin_src sh :results verbatim :wrap example
+  PATH=$PATH:$(cd ../bin && pwd)
+
+  echo First the C gambit
+  gsi -e '(apropos "table-merge!")'
+  echo; echo Then the JS gambit
+  gsi-js -e '(apropos "table-merge!")'
+
+  echo; echo doh;
+
+#+end_src
+
+#+RESULTS:
+#+begin_example
+First the C gambit
+"##" namespace:
+  table-merge!
+empty namespace:
+  table-merge!
+
+Then the JS gambit
+
+doh
+#+end_example
+
+So what does it do?
+
+#+begin_src scheme
+  (define-prim (##table-merge! table1
+                             table2
+                             #!optional
+                             (table2-takes-precedence? #f))
+  (if table2-takes-precedence?
+      (##table-for-each
+       (lambda (k v)
+         (##table-set! table1 k v))
+       table2)
+      (##table-for-each
+       (lambda (k v)
+         (if (##eq? (##table-ref table1 k (macro-unused-obj))
+                    (macro-unused-obj))
+             (##table-set! table1 k v)))
+       table2))
+  table1)
+#+end_src
+
+
+And we have just the solution.
+
+#+begin_src scheme
+  (begin
+    (define (table-merge! table1
+                          table2
+                          #!optional
+                          (table2-takes-precedence? #f))
+      (if table2-takes-precedence?
+          (table-for-each
+           (lambda (k v)
+             (table-set! table1 k v))
+           table2)
+          (table-for-each
+           (lambda (k v)
+             (if (eq? (table-ref table1 k (macro-unused-obj))
+                      (macro-unused-obj))
+                 (table-set! table1 k v)))
+           table2))
+      table1))
+#+end_src
+
+* Open process and copy file
+
+The gerbil compiler requires them.
+
+#+begin_src scheme
+  (cond-expand
+
+ ((compilation-target js)
+  (begin
+    (define (table-merge! table1
+                          table2
+                          #!optional
+                          (table2-takes-precedence? #f))
+      (if table2-takes-precedence?
+          (table-for-each
+           (lambda (k v)
+             (table-set! table1 k v))
+           table2)
+          (table-for-each
+           (lambda (k v)
+             (if (eq? (table-ref table1 k (macro-unused-obj))
+                      (macro-unused-obj))
+                 (table-set! table1 k v)))
+           table2))
+      table1)
+
+
+    (define (copy-file from to)
+      (##inline-host-declaration "
+@gx_copy_file@ = (scm_from, scm_to) => {
+ let from = @scm2host@(scm_from), to = @scm2host@(scm_to)
+const { cpSync } = require('node:fs');
+ console.log('Copy File', from, to)
+ return cpSync(from, to);
+}")
+      (##inline-host-expression "@gx_copy_file@(@1@, @2@)"
+                                from to))
+
+
+    (define (open-process path-or-settings)
+      (##inline-host-declaration "
+@gx_open_process@ = (path_or_settings_scm) => {
+if (typeof window !== 'undefined') {
+  return(-1);
+} else {
+  const { spawn } = require('node:child_process');
+
+  function cmd(...command) {
+   let p = spawn(...command);
+    return new Promise((resolveFunc) => {
+    p.stdout.on(\"data\", (x) => {
+      process.stdout.write(x.toString());
+    });
+    p.stderr.on(\"data\", (x) => {
+      process.stderr.write(x.toString());
+    });
+    p.on(\"close\", (code) => {
+      console.log(`child process exited with code ${code}`);
+      resolveFunc(code);
+    });
+  });
+}
+
+
+  // convert the arg list into an object
+  var array = @scm2host@(path_or_settings_scm);
+  var args = {};
+
+  array.forEach(function(item, index) {
+    if(index % 2 === 0) {
+       args[item] = array[index + 1];
+    }
+  });
+
+
+  const gsc = cmd(args.path, args.arguments);
+  console.log('gx-open-process',args, gsc.child)
+
+  return @host2scm@(gsc);
+}
+
+};
+")
+      (##inline-host-expression "@gx_open_process@(@1@)"
+                                path-or-settings))
+
+    (define (process-status proc)
+      (displayln "We have a process/promise, yeah?" proc)
+      (##scm2host-call-return proc)))))
+#+end_src
+* It works?
+
+#+begin_src bash :session gxjs-restart
+  export GXJS_HOME=$(cd ../ && pwd)
+  echo 'GXJS_HOME='$GXJS_HOME
+#+end_src
+
+#+RESULTS:
+|                                             |
+| GXJS_HOME=/home/drewc/me/MuKn/src/gerbil.js |
+
+#+begin_src bash :session gxjs-restart
+  export GXJS_BIN=$GXJS_HOME/bin
+  export GERBIL_GSC=$GXJS_BIN/gsc
+  export GERBIL_GSI=$GXJS_BIN/gsi-js
+#+end_src
+
+The issue is still like last time. Bytecode namespace.
+
+The debugging prints show us this.
+
+#+begin_example
+gxc#verboseinvoke gsc (gsc -target js -module-ref gerbil/prelude/core.ss /home/drewc/me/MuKn/src/gerbil.js/gerbil/lib/gerbil/core__16.scm)
+gx-open-process {
+  path: '/home/drewc/me/MuKn/src/gerbil.js/bin/../gambit/gsc/gsc',
+  arguments: [
+    '-target',
+    'js',
+    '-module-ref',
+    'gerbil/prelude/core.ss',
+    '/home/drewc/me/MuKn/src/gerbil.js/gerbil/lib/gerbil/core__16.scm'
+  ],
+  'stdout-redirection': false
+}
+#+end_example
+
+That's the 17th file thus far with the same module ref.
+
+Let's give it a go another way. in =gxc#gsc-compile-file= we fudge the args to account for that and hopefully never reuse a module-ref
+
+#+begin_src scheme
+  (define gxjs-module-refs (make-hash-table))
+  (define (make-module-ref mr n)
+    ;; (displayln "make mod ref" mr n)
+    (let ((nmr (string-append mr n)))
+      (if (hash-ref gxjs-module-refs nmr #f)
+          (make-module-ref nmr "_")
+          nmr)))
+
+  (define (make-gsc-args args)
+    ;; (displayln "make gsc args" args)
+    (let* ((mr-cons
+            (let mr ((kons args))
+              (if (and (pair? kons)
+                       (equal? "-module-ref" (car kons)))
+                  kons
+                  (if (null? kons) (error "No module-ref in " args)
+                      (mr (cdr kons))))))
+           (path (last args))
+           (strlen (string-length path))
+           (possible-number (gxjs-name->number-string path))
+           (module-ref (make-module-ref (cadr mr-cons) possible-number)))
+      (set-cdr! mr-cons (cons module-ref (cddr mr-cons))))
+    ;; (displayln "Args " args)
+    ;; (displayln "Module Ref" (cadr mr-cons))
+    ;; (displayln  ":Nom?" possible-number)
+    args)
+#+end_src
+#+RESULTS:
+
+* The "Not so working but got a lot further" conclusion.
+
+
+Ok, things seem good to go.
+
+We fail with an error that's far along in the compilation process.
+
+#+begin_example
+  ------... compile gerbil/compiler/optimize-ann.ss
+  ,*** ERROR IN gx#core-expand-ref% -- Syntax Error
+  ,*** ERROR IN "gerbil/compiler/optimize-ann.ss"@101.14
+  --- Syntax Error: Reference to unbound identifier
+  ... form:   (%#ref K)
+  ... detail: K at "gerbil/compiler/optimize-ann.ss"@101.14
+#+end_example
+
+I'm fairly certain that is near the end of gerbil-making-gerbil compilation, [[file:~/me/MuKn/src/gerbil.js/gerbil/src/build/build1.ss::"gerbil/compiler/optimize-ann.ss"][here]] in build1.ss.
+
+That error comes from [[file:~/me/MuKn/src/gerbil.js/gerbil/src/gerbil/compiler/optimize-ann.ss::101][here]]. The K is in a with. We'll do this from another log.
+
+#+begin_src scheme
+  (def (optimize-match-body stx negation clauses konts)
+  (def (push-variables clause kont)
+    (with (([clause-name . clause-lambda] clause)
+           ([K . _] kont))
+      (cons clause-name (apply-push-match-vars clause-lambda [] K))))
+
+  (def (start-match kont)
+    (ast-case kont (%#lambda)
+      ((%#lambda () body) #'body)))
+
+  (def (match-body blocks)
+    (with ([[#f . start] . rest] blocks)
+      (let lp ((rest rest) (body (start-match start)))
+        (match rest
+          ([block . rest]
+           (with ([K . kont] block)
+             (lp rest ['%#let-values [[[K] kont]] body])))
+          (else body)))))
+
+  (parameterize ((current-expander-context (make-local-context)))
+    (let* ((clauses (map push-variables clauses konts))
+           (blocks (optimize-match-basic-blocks clauses))
+           (blocks (optimize-match-fold-basic-blocks blocks))
+           (body (match-body blocks))
+           (bind (map (match <> ([K . kont] [[K] kont]))
+                      konts))
+           (negate (with ([K . kont] negation) [[K] kont])))
+      (xform-wrap-source
+       ['%#let-values [negate]
+         ['%#let-values bind body]]
+       stx))))
+#+end_src
+
+* The build.sh Shebang
+
+This is where we pull the gambit submodule.
+
+#+HEADER: :shebang #!/usr/bin/env bash
+#+begin_src bash :tangle ../bin/build.sh :mkdirp t
+  cd $(dirname $0)
+  _MyPath="$(pwd)"
+
+  getSubs() {
+    git submodule update --init --recursive
+  }
+
+  if [ -f ../gambit/README ]; then
+    echo "Already have gambit"
+  else
+    echo "Updating submodules. This may take a while."
+    getSubs
+  fi
+#+end_src
+
+
+** Build our gambit
+
+#+begin_src bash :tangle ../bin/build.sh
+    buildGambit () {
+     cd $_MyPath
+     cd ../gambit
+    ./configure --prefix=$(pwd) --enable-single-host \
+                --enable-default-compile-options="(compactness 0)"
+    make clean
+    make -j8 core
+    make _gambit.js
+    cd -
+    }
+
+    if [[ -f ../gambit/gsc/gsc ]];
+    then
+        echo "Have already built gsc"
+    else
+        echo "Building Gambit"
+        buildGambit
+    fi
+#+end_src
+
+** Build our own ~gsi-js~
+
+#+begin_src bash :tangle ../bin/build.sh
+   GERBIL_SRC=$_MyPath/../gerbil
+   GAMBIT_SRC=$_MyPath/../gambit
+
+   export GERBIL_GSI=$GERBIL_SRC/gsi-js
+   export GERBIL_GSC=$GAMBIT_SRC/gsc/gsc
+
+   echo "Building gsi-js"
+   cd $GERBIL_SRC/src/gerbil && \
+         $GERBIL_GSC -target js -exe -o $GERBIL_GSI ./gsi-js.scm
+
+   cd $_MyPath
+
+   ln -srvf $GERBIL_GSI $_MyPath/
+   ln -srvf $GERBIL_GSC $_MyPath/
+
+#+end_src
+
+** Build our bootstrap
+
+First, ~gxi~.
+
+#+begin_src bash :tangle ../bin/build.sh
+  build_gxi() {
+      cd $GERBIL_SRC/src/ && ./build.sh gxi
+      cd $_MyPath;
+  }
+
+  if [[ -f $GERBIL_SRC/src/gxi ]]; then
+      echo "Already have gxi shim"
+  else
+      build_gxi
+  fi
+
+   ln -srvf $GERBIL_SRC/src/gxi $_MyPath/gxi-shim
+
+#+end_src
+
+Now =stage0=.
+
+#+begin_src bash :tangle ../bin/build.sh
+  build_bootstrap() {
+      cd $GERBIL_SRC/src/ && ./build.sh stage0
+      cd $_MyPath;
+  }
+
+  build_bootstrap
+#+end_src
+
+And a simple script to run that.
+
+#+begin_src bash :tangle ../bin/gxi-boot :shebang #!/usr/bin/env bash
+  cd $(dirname $0)
+  export GERBIL_GSI="$(cd ../gerbil && pwd)/gsi-js"
+  export GERBIL_HOME=$(cd ../gerbil/bootstrap && pwd)
+  cd -
+  exec $GERBIL_HOME/bin/gxi "$@"
+#+end_src
+
+And Stage1
+
+#+begin_src bash :tangle ../bin/build.sh
+  build_first_stage() {
+      cd $GERBIL_SRC/src/ && ./build.sh stage1
+      cd $_MyPath;
+  }
+
+  build_first_stage
+#+end_src
+

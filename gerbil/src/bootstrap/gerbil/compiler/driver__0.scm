@@ -1,10 +1,13 @@
-(declare (block) (standard-bindings) (extended-bindings))
+(declare (block) (standard-bindings) (extended-bindings)
+         #;(debug) #;(debug-location))
 (begin
   (define gxc#compile-timestamp
     (lambda () (inexact->exact (floor (time->seconds (current-time))))))
   (define gxc#gerbil-gsc (lambda () (getenv '"GERBIL_GSC" '"gsc")))
   (define gxc#compile-file__%
     (lambda (_srcpath50241_ _opts50242_)
+      #;(displayln "gxc#compile-file__% :"
+                 (list _srcpath50241_ _opts50242_))
       (if (string? _srcpath50241_)
           '#!void
           (gxc#raise-compile-error
@@ -21,8 +24,11 @@
             (_static50252_ (pgetq 'static: _opts50242_)))
         (if _outdir50244_ (create-directory* _outdir50244_) '#!void)
         (if _optimize50249_ (gxc#optimizer-info-init!) '#!void)
+        #;(displayln "gsc optniona" _gsc-options50246_)
         (call-with-parameters
          (lambda ()
+           #;(displayln "Here as well gsc optnions paran"
+                      (gxc#current-compile-gsc-options))
            (gxc#verbose '"compile " _srcpath50241_)
            (gxc#compile-top-module (gx#import-module__0 _srcpath50241_)))
          gxc#current-compile-output-dir
@@ -781,10 +787,11 @@
       (zero? (file-info-size (file-info _path49794_ '#t)))))
   (define gxc#compile-top-module
     (lambda (_ctx49791_)
+      #;(displayln "compile top module: " _ctx49791_)
       (call-with-parameters
        (lambda ()
          (gxc#verbose
-          '"compile "
+          '"compile top module"
           (##structure-ref _ctx49791_ '1 gx#expander-context::t '#f))
          (if (gxc#current-compile-optimize) (gxc#optimize! _ctx49791_) '#!void)
          (gxc#collect-bindings _ctx49791_)
@@ -833,6 +840,7 @@
                                        '#f))))
                                 (string-append _idstr49782_ '"__0"))
                               '#f)))
+                    #;(displayln "In compile within compile runtime code" _rt49784_)
                     (if _rt49784_
                         (begin
                           (table-set!
@@ -847,12 +855,16 @@
                                    (gxc#compile-static-output-file
                                     _ctx49778_)))
                               (with-output-to-file
-                               (cons 'path:
-                                     (cons _path49787_
-                                           (cons 'permissions:
-                                                 (cons '420 '()))))
-                               void))
+                                  (cons 'path:
+                                        (cons _path49787_
+                                              (cons 'permissions:
+                                                    (cons '420 '()))))
+                                void))
                             '#!void))
+                    #;(displayln "genering loader code" _generate-loader-code49747_
+                     _ctx49778_
+                     _code49780_
+                     _rt49784_)
                     (_generate-loader-code49747_
                      _ctx49778_
                      _code49780_
@@ -881,7 +893,9 @@
                                             (cons _runtime-code49768_ '())
                                             (reverse (unbox _lifts49765_))))))
                          (_scm049772_
-                          (gxc#compile-output-file _ctx49762_ '0 '".scm")))
+                          (begin  #;(displayln "Runtime compile output file"
+                                             _ctx49762_ '0 '".scm")
+                                  (gxc#compile-output-file _ctx49762_ '0 '".scm"))))
                     (if (gxc#current-compile-static)
                         (let ((_scms49775_
                                (gxc#compile-static-output-file _ctx49762_)))
@@ -921,14 +935,39 @@
                                           (cons (cons 'load-module
                                                       (cons _rt49753_ '()))
                                                 '())))
-                              _loader-code49756_)))
+                              _loader-code49756_))
+                         (module-source-directory
+                          (lambda (_ctx49475_)
+                            (path-directory
+                             (let ((_mpath49477_
+                                    (##structure-ref
+                                     _ctx49475_
+                                     '7
+                                     gx#module-context::t
+                                     '#f)))
+                               (if (string? _mpath49477_)
+                                   _mpath49477_
+                                   (last _mpath49477_))))))
+                         (module-path
+                          (lambda (_ctx49479_)
+                            (gxc#module-id->path-string
+                              (##structure-ref
+                               _ctx49479_
+                               '1
+                               gx#expander-context::t
+                               '#f)))))
                     (call-with-parameters
                      (lambda ()
                        (gxc#compile-scm-file__0
                         (gxc#compile-output-file _ctx49751_ 'rt '".scm")
                         _loader-code49758_))
                      gxc#current-compile-gsc-options
-                     '#f)))))
+                     (cond-expand
+                      ((compilation-target js)
+                       (list "-verbose" "-target" "js"
+                             "-module-ref"
+                             (string-append (module-path _ctx49751_) "_rt")))
+                      (else #f)))))))
         (let ((_all-modules49749_
                (cons _ctx49743_ (gxc#lift-nested-modules _ctx49743_))))
           (for-each _compile149745_ _all-modules49749_)))))
@@ -1135,7 +1174,8 @@
         (reverse (unbox _modules49612_)))))
   (define gxc#compile-scm-file__%
     (lambda (_path49593_ _code49594_ _phi?49595_)
-      (gxc#verbose '"compile " _path49593_)
+      (gxc#verbose '"compile scm file " _path49593_
+                   (list _path49593_ _code49594_ _phi?49595_))
       (with-output-to-file
        (cons 'path: (cons _path49593_ (cons 'permissions: (cons '420 '()))))
        (lambda ()
@@ -1207,8 +1247,46 @@
                (##raise-wrong-number-of-arguments-exception
                 gxc#gsc-debug-options
                 _g50292_))))))
+
+  (define (gxjs-name->number-string name)
+    (let ((numl (reverse
+                 (fold (lambda (char lst)
+                         (if (char-numeric? char)
+                             (cons char lst) lst)) '()
+                             (string->list name )))))
+      (list->string numl)))
+
+  (define gxjs-module-refs (make-hash-table))
+  (define (make-module-ref mr n)
+    ;; (displayln "make mod ref" mr n)
+    (let ((nmr (string-append mr n)))
+      (if (hash-ref gxjs-module-refs nmr #f)
+          (make-module-ref nmr "_")
+          nmr)))
+
+  (define (make-gsc-args args)
+    ;; (displayln "make gsc args" args)
+    (let* ((mr-cons
+            (let mr ((kons args))
+              (if (and (pair? kons)
+                       (equal? "-module-ref" (car kons)))
+                  kons
+                  (if (null? kons) (error "No module-ref in " args)
+                      (mr (cdr kons))))))
+           (path (last args))
+           (strlen (string-length path))
+           (possible-number (gxjs-name->number-string path))
+           (module-ref (make-module-ref (cadr mr-cons) possible-number)))
+      (set-cdr! mr-cons (cons module-ref (cddr mr-cons))))
+    ;; (displayln "Args " args)
+    ;; (displayln "Module Ref" (cadr mr-cons))
+    ;; (displayln  ":Nom?" possible-number)
+    args)
+
+
   (define gxc#gsc-compile-file
     (lambda (_path49481_ _phi?49482_)
+      #;(displayln "In gxc#gsc-compile-file" _path49481_ _phi?49482_)
       (let* ((_gsc-args49489_
               (let ((_$e49484_ (gxc#current-compile-gsc-options)))
                 (if _$e49484_
@@ -1217,20 +1295,21 @@
                      _$e49484_)
                     (cons _path49481_ '()))))
              (_gsc-args49491_
-              (foldr1 cons
-                      _gsc-args49489_
-                      (gxc#gsc-debug-options__% _phi?49482_)))
+              (make-gsc-args (foldr1 cons
+                                     _gsc-args49489_
+                                     (gxc#gsc-debug-options__% _phi?49482_))))
              (_g50293_
               (gxc#verbose '"invoke gsc " (cons 'gsc _gsc-args49491_)))
-             (_proc49494_
-              (open-process
-               (cons 'path:
-                     (cons (gxc#gerbil-gsc)
-                           (cons 'arguments:
-                                 (cons _gsc-args49491_
-                                       (cons 'stdout-redirection:
-                                             (cons '#f '()))))))))
-             (_status49496_ (process-status _proc49494_)))
+             (proc
+               (open-process
+                 (cons 'path:
+                       (cons (gxc#gerbil-gsc)
+                             (cons 'arguments:
+                                   (cons _gsc-args49491_
+                                         (cons 'stdout-redirection:
+                                               (cons '#f '()))))))))
+             (_status49496_
+              (process-status proc)))
         (if (zero? _status49496_)
             '#!void
             (gxc#raise-compile-error
@@ -1239,6 +1318,9 @@
              _status49496_)))))
   (define gxc#compile-output-file
     (lambda (_ctx49453_ _n49454_ _ext49455_)
+      #;(displayln "gxc#compile-output-file"
+                 _ctx49453_ _n49454_ _ext49455_)
+
       (letrec ((_module-relative-path49457_
                 (lambda (_ctx49479_)
                   (path-strip-directory

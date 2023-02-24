@@ -68,8 +68,15 @@ build_bootstrap() {
 build_bootstrap
 
 build_first_stage() {
-    cd $GERBIL_SRC/src/ && ./build.sh stage1
+    cd $GERBIL_SRC/src/ && ./build.sh stage1 final
     cd $_MyPath;
 }
 
 build_first_stage
+
+build_stdlib() {
+    cd $GERBIL_SRC/src/ && ./build.sh stdlib
+    cd $_MyPath;
+}
+
+build_stdlib

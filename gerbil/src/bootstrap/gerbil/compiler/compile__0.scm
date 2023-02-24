@@ -1,13 +1,8 @@
-(declare (block) (standard-bindings) (extended-bindings))
-#;(declare
- (not inline)
- (debug)
- (debug-location)
- (debug-source)
- (debug-environments))
-
+(declare (block) (standard-bindings) (extended-bindings)
+         ;; (debug)
+         ;; (debug-location)
+         )
 (begin
-
   (define gxc#current-compile-methods (make-parameter '#f))
   (define gxc#current-compile-lift (make-parameter '#f))
   (define gxc#current-compile-marks (make-parameter '#f))
@@ -20,7 +15,6 @@
         (make-table 'test: gx#bound-identifier=? 'hash: _hash-e14425_))))
   (define gxc#compile-e
     (lambda (_stx14380_ . _args14381_)
-      (displayln "In compile-e")
       (let* ((_g1438314393_
               (lambda (_g1438414390_)
                 (gx#raise-syntax-error '#f '"Bad syntax" _g1438414390_)))
@@ -5162,8 +5156,7 @@
                       (_else92289242_)))))
           (cons _form9216_ (cons _bind9223_ _body9257_))))))
   (define gxc#generate-runtime-quote%
-    (lambda (stx)
-      ;; (displayln "Generate Runtime Quote? ")
+    (lambda (_stx9124_)
       (letrec ((_generate19126_
                 (lambda (_datum9178_)
                   (if (or (null? _datum9178_)
@@ -5194,11 +5187,11 @@
                                               (f64vector? _datum9178_))
                                           _datum9178_
                                           (gxc#raise-compile-error
-                                           '" bootstramp comiler runtime quote Cannot compile non-primitive quote"
-                                           stx))))))))))
+                                           '"Cannot compile non-primitive quote"
+                                           _stx9124_))))))))))
         (let* ((_g91289141_
                 (lambda (_g91299138_)
-                  (gx#raise-syntax-error '#f '" bootstrap compiler runtime qui=ote Bad syntax" _g91299138_)))
+                  (gx#raise-syntax-error '#f '"Bad syntax" _g91299138_)))
                (_g91279175_
                 (lambda (_g91299144_)
                   (if (gx#stx-pair? _g91299144_)
@@ -5219,7 +5212,7 @@
                                       (_g91289141_ _g91299144_))))
                               (_g91289141_ _g91299144_))))
                       (_g91289141_ _g91299144_)))))
-          (_g91279175_ stx)))))
+          (_g91279175_ _stx9124_)))))
   (define gxc#generate-runtime-call%
     (lambda (_stx8817_)
       (let* ((_g88198833_
@@ -7560,7 +7553,7 @@
             (_gx#vector-set! _self6226_ '2 '1)
             (_gx#vector-set! _self6226_ '3 (make-table 'test: eq?))
             (_gx#vector-set! _self6226_ '4 '()))
-          (error '"Meta State struct-instance-init!: too many arguments for struct"
+          (error '"struct-instance-init!: too many arguments for struct"
                  _self6226_))))
   (bind-method! gxc#meta-state::t ':init! gxc#meta-state:::init! '#f)
   (define gxc#meta-state-block::t

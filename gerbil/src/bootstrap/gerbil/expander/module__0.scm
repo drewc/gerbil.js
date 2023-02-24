@@ -1,18 +1,6 @@
-#;(declare (block) (standard-bindings) (extended-bindings))
-(declare
- ;; (block)
- (standard-bindings) (extended-bindings)
-
-  (not inline)
-  ;; (debug)
-  ;; (debug-location)
-  ;; (debug-source)
-  ;; (debug-environments)
- )
-
-
+(declare (block) (standard-bindings) (extended-bindings))
 (begin
-  (declare (safe))
+  (declare (not safe))
   (define gx#module-import::t
     (make-struct-type
      'gx#module-import::t
@@ -219,7 +207,8 @@
     (make-class-predicate gx#import-export-expander::t))
   (define gx#make-import-export-expander
     (lambda _$args15955_
-      (apply make-class-instance gx#import-export-expander::t _$args15955_))) (define gx#current-import-expander-phi (make-parameter '#f))
+      (apply make-class-instance gx#import-export-expander::t _$args15955_)))
+  (define gx#current-import-expander-phi (make-parameter '#f))
   (define gx#current-export-expander-phi (make-parameter '#f))
   (define gx#current-module-reader-path (make-parameter '#f))
   (define gx#current-module-reader-args (make-parameter '#f))
@@ -385,13 +374,9 @@
                 gx#import-module
                 _g16015_))))))
   (define gx#eval-module
-    (lambda (_mod15008_)
-      #;(displayln "Eval Module With "
-                 (gx#current-expander-module-eval))
-      ((gx#current-expander-module-eval) _mod15008_)))
+    (lambda (_mod15008_) ((gx#current-expander-module-eval) _mod15008_)))
   (define gx#core-eval-module
     (lambda (_obj14993_)
-      ;; (displayln "Core Eval! " (gx#expander-context-id  _obj14993_))
       (letrec ((_force-e14995_
                 (lambda (_getf15004_ _e15005_)
                   (call-with-parameters
@@ -452,15 +437,8 @@
                      __obj16008)))
               (table-set! _ht14968_ _ctx14966_ _pre14973_)
               _pre14973_)))))
-
-  (define gx#dbug-import-modules '())
   (define gx#core-import-module__%
     (lambda (_rpath14847_ _reload?14848_)
-      ;; (displayln "Core Import Module %" _rpath14874_)
-      (set! gx#dbug-import-modules
-            (cons (cons _rpath14847_ _reload?14848_)
-                  gx#dbug-import-modules))
-
       (letrec ((_import-source14850_
                 (lambda (_path14935_)
                   (if (member _path14935_ (gx#current-expander-path))
@@ -501,12 +479,12 @@
                                                          _$e14943_
                                                          (let ((__obj16009
                                                                 (make-object
-                                                                 ;;<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-                                                                 gx#prelude-context::t
-                                                                 '8)))
-                                                           (gx#prelude-context:::init!__0 __obj16009 '#f)
-                                                           __obj16009)))
-                                                   ;;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+;;<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+                         gx#prelude-context::t
+                         '8)))
+                   (gx#prelude-context:::init!__0 __obj16009 '#f)
+                   __obj16009)))
+;;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
                                                    (error '"Cannot import module; unknown prelude"
                                                           _rpath14847_
                                                           _pre14938_))))))
@@ -677,34 +655,15 @@
                (##raise-wrong-number-of-arguments-exception
                 gx#core-import-module
                 _g16021_))))))
-  (define gx#dbug-read-modules '())
-  (define (gx#dbug-start-read-module path)
-    (set! gx#dbug-read-modules
-          (cons (cons path #f) gx#dbug-read-modules)))
-
-  (define (gx#dbug-end-read-module path res)
-    (let e ((mods gx#dbug-read-modules))
-      (if (eq? (car (car mods)) path)
-          (set-cdr! (car mods) res)
-          (if (null? (cdr mods))
-              (error "Read Module WTF?" path res)
-              (e (cdr mods))))))
-
   (define gx#core-read-module
-    (lambda (path)
-      (gx#dbug-start-read-module path)
-      (let* ((res 'sexp)
-             (mod
-              (with-exception-catcher
-               (lambda (_exn14843_)
-                 (if (and (datum-parsing-exception? _exn14843_)
-                          (eq? (datum-parsing-exception-filepos _exn14843_) '0))
-                     (begin (set! res 'lang)
-                            (gx#core-read-module/lang path))
-                     (raise _exn14843_)))
-               (lambda () (gx#core-read-module/sexp path)))))
-        (gx#dbug-end-read-module path res)
-        mod)))
+    (lambda (_path14841_)
+      (with-exception-catcher
+       (lambda (_exn14843_)
+         (if (and (datum-parsing-exception? _exn14843_)
+                  (eq? (datum-parsing-exception-filepos _exn14843_) '0))
+             (gx#core-read-module/lang _path14841_)
+             (raise _exn14843_)))
+       (lambda () (gx#core-read-module/sexp _path14841_)))))
   (define gx#core-read-module/sexp
     (lambda (_path14701_)
       (let _lp14703_ ((_body14705_ (read-syntax-from-file _path14701_))
