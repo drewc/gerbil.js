@@ -1,0 +1,316 @@
+#+title: Tracking the new error
+#+date: <2023-02-24 15:13>
+#+description:
+#+filetags:
+
+As always there's an error that we need to track.
+
+#+begin_example
+  ,*** ERROR IN gx#core-expand-ref% -- Syntax Error
+  ,*** ERROR IN "gerbil/compiler/optimize-ann.ss"@101.14
+  --- Syntax Error: Reference to unbound identifier
+  ... form:   (%#ref K)
+  ... detail: K at "gerbil/compiler/optimize-ann.ss"@101.14
+#+end_example
+
+
+That gives us this.
+
+#+begin_src scheme :tangle ../gerbil/src/gerbil/compiler/TEST.ss
+    ;;; -*- Gerbil -*-
+  ;;; (C) vyzo at hackzen.org
+  ;;; gerbil compiler optimization passes
+  package: gerbil/compiler
+  namespace: gxc
+
+  (import :gerbil/expander
+          "base"
+          "compile"
+          "optimize-base"
+          "optimize-xform")
+  (export #t)
+
+    (def (optimize-match-body stx negation clauses konts)
+    (def (push-variables clause kont)
+      (with (([clause-name . clause-lambda] clause)
+             ([FOO . UNDERSCOREFOO] kont)
+             ) ;; This is line 101
+        (cons clause-name (apply-push-match-vars clause-lambda [] BAR))))
+
+    (def (start-match kont)
+      (ast-case kont (%#lambda)
+        ((%#lambda () body) #'body)))
+
+    (def (match-body blocks)
+      (with ([[#f . start] . rest] blocks)
+        (let lp ((rest rest) (body (start-match start)))
+          (match rest
+            ([block . rest]
+             (with ([BAZ . kont] block)
+               (lp rest ['%#let-values [[[BAZ] kont]] body])))
+            (else body)))))
+
+    (parameterize ((current-expander-context (make-local-context)))
+      (let* ((clauses (map push-variables clauses konts))
+                                            ;         (blocks (optimize-match-basic-blocks clauses))
+                                            ;        (blocks (optimize-match-fold-basic-blocks blocks))
+                                            ;       (body (match-body blocks))
+                                            ;      (bind (map (match <> ([K . kont] [[K] kont]))
+             ;; konts
+                                            ; ))
+             #;     (negate (with ([K . kont] negation) [[K] kont]))
+             )
+        #;(xform-wrap-source
+         ['%#let-values [negate]
+           ['%#let-values bind body]]
+         stx)
+
+    clauses)))
+#+end_src
+
+Let's see if we can re-create the error with just that.
+
+#+begin_src scheme :tangle ../gerbil/src/build/build2.ss
+      ;; -*- Gerbil -*-
+      (import :gerbil/compiler)
+
+      (extern namespace: "gerbil/core$<match>[:0:]" with)
+
+      (def gerbil-modules-compiler
+           '("gerbil/compiler/TEST.ss"))
+
+
+      (step-level-set! 4)
+
+
+
+       (displayln "In Build2" with)
+      (break with)
+
+
+      (def gerbil-libdir
+         (path-expand "lib" (getenv "GERBIL_TARGET")))
+      (def (compile1 modf debug optimize? gen-ssxi? static?)
+        (displayln "\n\n------... compile " modf)
+         (compile-file
+           modf [
+                output-dir: gerbil-libdir invoke-gsc: #t
+                debug: debug optimize: optimize? generate-ssxi: gen-ssxi? static: static?
+                gsc-options: ["-target" "js" "-module-ref" modf]]))
+      (def (compile-group group . options)
+        (for-each (lambda (x) (apply compile1 x options)) group))
+
+
+    (def debug-none #f)  ; no bloat
+    (def debug-src 'src) ; full introspection -- sadly, it adds bloat and increases load time
+
+
+  (compile-group gerbil-modules-compiler debug-none #f #t #f)
+#+end_src
+
+Then make src/build.sh use that file. [[file:~/me/MuKn/src/gerbil.js/gerbil/src/build.sh::"${GERBIL_STAGE0}/bin/gxi" "${GERBIL_BUILD}/build2.ss" || die][Right here]].
+
+With some debug and displays for [[file:~/me/MuKn/src/gerbil.js/gerbil/src/bootstrap/gerbil/expander/core__0.scm::(define gx#core-apply-expander__%][gx#core-apply-expander__%]] we can see some specific steps.
+
+#+begin_src diff
+    diff --git a/gerbil/src/bootstrap/gerbil/expander/core__0.scm b/gerbil/src/bootstrap/gerbil/expander/core__0.scm
+index 1ec9e657..184241fa 100644
+--- a/gerbil/src/bootstrap/gerbil/expander/core__0.scm
++++ b/gerbil/src/bootstrap/gerbil/expander/core__0.scm
+@@ -1,6 +1,10 @@
+-(declare (block) (standard-bindings) (extended-bindings))
++(declare (block) (standard-bindings) (extended-bindings)
++         ;; (debug )
++         ;; (debug-location) (not debug-source)
++         )
++
+ (begin
+-  (declare (not safe))
++  ;; (declare (not safe))
+   (define gx#current-expander-context (make-parameter '#f))
+   (define gx#current-expander-marks (make-parameter '()))
+   (define gx#current-expander-phi (make-parameter '0))
+@@ -1406,6 +1410,7 @@
+                 _g9356_))))))
+   (define gx#core-apply-expander__%
+     (lambda (_K8237_ _stx8238_ _method8239_)
++      (displayln "core apply expander" _K8237_ ( _gx#pp-syntax _stx8238_) _method8239_)
+       (if (procedure? _K8237_)
+           (let ((_$e8241_ (gx#stx-source _stx8238_)))
+             (if _$e8241_
+#+end_src
+
+That helps us. My suspicion is the macro expander is not working so in the end it's looking for K which is syntax.
+
+#+begin_example
+  ,*** entering bb82_gx_23_core_2d_expand_2d_local_2d_block
+  (lambda (clause kont)
+    (with (((@list clause-name . clause-lambda) clause) ((@list K . _) kont))
+          (cons clause-name (apply-push-match-vars clause-lambda (@list) K))))
+  core apply expander#<user-expander #3820>#!voidapply-macro-expander
+  (lambda (clause kont)
+    (with (((@list clause-name . clause-lambda) clause) ((@list K . _) kont))
+          (cons clause-name (apply-push-match-vars clause-lambda (@list) K))))
+  core apply expander#<procedure #100567>#!voidapply-macro-expander
+  (lambda (clause kont)
+    (with (((@list clause-name . clause-lambda) clause) ((@list K . _) kont))
+          (cons clause-name (apply-push-match-vars clause-lambda (@list) K))))
+  core apply expander#<procedure #3822 |gerbil/core$<sugar>$<sugar:2>[:0:]#lambda|>#!voidapply-macro-expander
+  (lambda% (clause kont)
+           (with (((@list clause-name . clause-lambda) clause)
+                  ((@list K . _) kont))
+                 (cons clause-name
+                       (apply-push-match-vars clause-lambda (@list) K))))
+  core apply expander#<macro-expander #3823>#!voidapply-macro-expander
+  (lambda% (clause kont)
+           (with (((@list clause-name . clause-lambda) clause)
+                  ((@list K . _) kont))
+                 (cons clause-name
+                       (apply-push-match-vars clause-lambda (@list) K))))
+  core apply expander#<procedure #100568>#!voidapply-macro-expander
+  (lambda% (clause kont)
+           (with (((@list clause-name . clause-lambda) clause)
+                  ((@list K . _) kont))
+                 (cons clause-name
+                       (apply-push-match-vars clause-lambda (@list) K))))
+  core apply expander#<procedure #3825 gx#macro-expand-lambda%>#!voidapply-macro-expander
+
+  core apply expander#<procedure #11611 |gerbil/core$<match>[:0:]#with|>#!voidapply-macro-expander
+  (match* (((@list K . _) kont))
+          ((((@list clause-name . clause-lambda) clause))
+           (cons clause-name (apply-push-match-vars clause-lambda (@list) K))))
+  core apply expander#<user-expander #11613>#!voidapply-macro-expander
+  (match* (((@list K . _) kont))
+          ((((@list clause-name . clause-lambda) clause))
+           (cons clause-name (apply-push-match-vars clause-lambda (@list) K))))
+  core apply expander#<procedure #100572>#!voidapply-macro-expander
+  (match* (((@list K . _) kont))
+          ((((@list clause-name . clause-lambda) clause))
+           (cons clause-name (apply-push-match-vars clause-lambda (@list) K))))
+  core apply expander#<procedure #11615 |gerbil/core$<match>[:0:]#match*|>#!voidapply-macro-expander
+
+#+end_example
+
+So, let's start from the bottom?
+
+#+begin_src sh
+  find ../gerbil/src/ -type f -not -name '*js*' -exec grep -Hi '|gerbil/core$<match>\[:0:]#match' {} \;
+./gerbil/src/bootstrap/gerbil/core__10.scm:    (define |gerbil/core$<match>[:0:]#match|
+./gerbil/src/bootstrap/gerbil/core__10.scm:    (define |gerbil/core$<match>[:0:]#match*|
+./gerbil/src/bootstrap/gerbil/core.ssi:                   (%#define-syntax match |gerbil/core$<match>[:0:]#match|)
+./gerbil/src/bootstrap/gerbil/core.ssi:                   (%#define-syntax match* |gerbil/core$<match>[:0:]#match*|)
+#+end_src
+
+Ok. We know the gerbil source so the expansion is easier to follow.
+
+#+begin_src scheme
+  (defsyntax (match* stx)
+    (syntax-case stx ()
+      ((_ (e ...) . clauses)
+       (stx-list? #'clauses)
+       (with-syntax* ((($e ...)
+                       (gentemps #'(e ...)))
+                      (body
+                       (generate-match* stx #'($e ...) #'clauses)))
+         #'(let (($e e) ...)
+             body)))))
+#+end_src
+
+We add a dbg display [[file:~/me/MuKn/src/gerbil.js/gerbil/src/bootstrap/gerbil/core__10.scm::displayln "Inside the match* expander for " _g3067630696_ " and spliced " _g42171_][in this file funtion match*]] and build.
+
+That ends up redirecting me to the top. So add a catcher that displays the errors from the bottom up!
+#+begin_src diff
+   diff --git a/gerbil/src/bootstrap/gerbil/expander/core__0.scm b/gerbil/src/bootstrap/gerbil/expander/core__0.scm
+index 1ec9e657..b50ee2d4 100644
+--- a/gerbil/src/bootstrap/gerbil/expander/core__0.scm
++++ b/gerbil/src/bootstrap/gerbil/expander/core__0.scm
+@@ -1,6 +1,11 @@
+-(declare (block) (standard-bindings) (extended-bindings))
++(declare (block) (standard-bindings) (extended-bindings)
++          ;; (debug )
++          ;; (debug-location)
++          ;; (not debug-source)
++         )
++
+ (begin
+-  (declare (not safe))
++  ;; (declare (not safe))
+   (define gx#current-expander-context (make-parameter '#f))
+   (define gx#current-expander-marks (make-parameter '()))
+   (define gx#current-expander-phi (make-parameter '0))
+@@ -1406,26 +1411,32 @@
+                 _g9356_))))))
+   (define gx#core-apply-expander__%
+     (lambda (_K8237_ _stx8238_ _method8239_)
+-      (if (procedure? _K8237_)
+-          (let ((_$e8241_ (gx#stx-source _stx8238_)))
+-            (if _$e8241_
+-                ((lambda (_g82438245_)
+-                   (gx#stx-wrap-source (_K8237_ _stx8238_) _g82438245_))
+-                 _$e8241_)
+-                (_K8237_ _stx8238_)))
+-          (let ((_$e8248_ (bound-method-ref _K8237_ _method8239_)))
+-            (if _$e8248_
+-                ((lambda (_g82508252_)
+-                   (gx#core-apply-expander__%
+-                    _g82508252_
++      ;; (declare (not inline) (debug))
++      (with-exception-catcher
++       (lambda (e)
++         (displayln "core apply expander ERROR" _K8237_ (&AST->datum _stx8238_) _method8239_)
++         (raise e))
++       (lambda ()
++         (if (procedure? _K8237_)
++             (let ((_$e8241_ (gx#stx-source _stx8238_)))
++               (if _$e8241_
++                   ((lambda (_g82438245_)
++                      (gx#stx-wrap-source (_K8237_ _stx8238_) _g82438245_))
++                    _$e8241_)
++                   (_K8237_ _stx8238_)))
++             (let ((_$e8248_ (bound-method-ref _K8237_ _method8239_)))
++               (if _$e8248_
++                   ((lambda (_g82508252_)
++                      (gx#core-apply-expander__%
++                       _g82508252_
++                       _stx8238_
++                       _method8239_))
++                    _$e8248_)
++                   (gx#raise-syntax-error
++                    '#f
++                    '"Bad syntax"
+                     _stx8238_
+-                    _method8239_))
+-                 _$e8248_)
+-                (gx#raise-syntax-error
+-                 '#f
+-                 '"Bad syntax"
+-                 _stx8238_
+-                 _method8239_))))))
++                    _method8239_))))))))
+   (define gx#core-apply-expander__0
+     (lambda (_K8258_ _stx8259_)
+       (let ((_method8261_ 'apply-macro-expander))
+#+end_src
+
+So this helps with the stack better than my backstrace attempts.
+
+
+#+begin_example
+  core apply expander ERROR#<expression-form #23>(%#ref K)apply-macro-expander
+  core apply expander ERROR#<procedure #24 gx#core-expand-call%>(%#call cons K (@list . _))apply-macro-expander
+  core apply expander ERROR#<procedure #25>(%#call cons K (@list . _))apply-macro-expander
+  core apply expander ERROR#<expression-form #26>(%#call cons K (@list . _))apply-macro-expander
+  core apply expander ERROR#<procedure #24 gx#core-expand-call%>(%#call (@list K . _) kont)apply-macro-expander
+  core apply expander ERROR#<procedure #27>(%#call (@list K . _) kont)apply-macro-expander
+  core apply expander ERROR#<expression-form #26>(%#call (@list K . _) kont)apply-macro-expander
+  core apply expander ERROR#<procedure #28 gx#core-expand-let-values%>(%#let-values (((#0=g24472) ((@list K . _) kont))) (begin-annotation @match (let ((#1=E24474 (lambda () (error No clause matching #0#)))) (begin-annotation @match-body (let (#2=K24475 (lambda () (begin (cons clause-name (apply-push-match-vars clause-lambda (@list) K))))) (if (##eq? #0# '((@list clause-name . clause-lambda) clause)) (#2#) (#1#)))))))apply-macro-expander
+  core apply expander ERROR#<procedure #29>(%#let-values (((#0=g24472) ((@list K . _) kont))) (begin-annotation @match (let ((#1=E24474 (lambda () (error No clause matching #0#)))) (begin-annotation @match-body (let (#2=K24475 (lambda () (begin (cons clause-name (apply-push-match-vars clause-lambda (@list) K))))) (if (##eq? #0# '((@list clause-name . clause-lambda) clause)) (#2#) (#1#)))))))apply-macro-expander
+  core apply expander ERROR#<expression-form #30>(%#let-values (((#0=g24472) ((@list K . _) kont))) (begin-annotation @match (let ((#1=E24474 (lambda () (error No clause matching #0#)))) (begin-annotation @match-body (let (#2=K24475 (lambda () (begin (cons clause-name (apply-push-match-vars clause-lambda (@list) K))))) (if (##eq? #0# '((@list clause-name . clause-lambda) clause)) (#2#) (#1#)))))))apply-macro-expander
+  core apply expander ERROR#<procedure #31 gx#core-expand-lambda%>(%#lambda (clause kont) (with (((@list clause-name . clause-lambda) clause) ((@list K . _) kont)) (cons clause-name (apply-push-match-vars clause-lambda (@list) K))))apply-macro-expander
+  core apply expander ERROR#<procedure #32>(%#lambda (clause kont) (with (((@list clause-name . clause-lambda) clause) ((@list K . _) kont)) (cons clause-name (apply-push-match-vars clause-lambda (@list) K))))apply-macro-expander
+  core apply expander ERROR#<expression-form #33>(%#lambda (clause kont) (with (((@list clause-name . clause-lambda) clause) ((@list K . _) kont)) (cons clause-name (apply-push-match-vars clause-lambda (@list) K))))apply-macro-expander
+#+end_example
+
+So, by the look of things there are differences between the two ~with~ clauses when passed to the %#let-values.
+
+I changed the var names and also commented out the second line. Without it, it does work, so we just need to figure that out.

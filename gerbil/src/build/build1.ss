@@ -41,6 +41,7 @@
          "gerbil/prelude/gambit/exceptions.ss"
          "gerbil/prelude/gambit/threads.ss"
          "gerbil/prelude/gambit/bits.ss"
+         "gerbil/prelude/gambit/hvectors.ss"
          "gerbil/prelude/gambit/system.ss"
          "gerbil/prelude/gambit/foreign.ss"
          "gerbil/prelude/gambit/hash.ss"
@@ -84,4 +85,4 @@
 (compile-group gerbil-prelude-gambit debug-none #t #t #t)
 ;; compile compiler; no static
 (displayln "Compiling compiler ")
-(compile-group gerbil-modules-compiler debug-none #t #t #f)
+(compile-group gerbil-modules-compiler debug-none #f #t #f)

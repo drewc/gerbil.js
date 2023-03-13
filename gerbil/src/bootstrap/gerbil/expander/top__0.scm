@@ -1,6 +1,10 @@
 (declare (block) (standard-bindings) (extended-bindings))
+         ;; (debug)
+         ;; (debug-location)
+         ;; (not inline)
+
 (begin
-  (declare (not safe))
+  ;; (declare (not safe))
   (define gx#core-expand-begin%
     (lambda (_stx12553_)
       (letrec ((_expand-special12555_
@@ -1712,7 +1716,7 @@
       (let* ((_e1068710697_ _stx10686_)
              (_E1068910701_
               (lambda ()
-                (gx#raise-syntax-error '#f '"Bad syntax" _e1068710697_)))
+                (gx#raise-syntax-error '#f '"Bad syntax in this expand ref" _e1068710697_)))
              (_E1068810723_
               (lambda ()
                 (if (gx#stx-pair? _e1068710697_)
@@ -2526,6 +2530,10 @@
   (define gx#core-quote-runtime-ref
     (lambda (_id9846_ _form9847_)
       (let ((_bind9849_ (gx#resolve-identifier__0 _id9846_)))
+        #;(displayln "Resoviled " _id9846_ _form9847_ " to "
+                   _bind9849_
+                   (list (gx#core-context-rebind?__% (gx#core-context-top__0))
+                        (gx#core-extern-symbol? (gx#stx-e _id9846_))))
         (if (##structure-instance-of? _bind9849_ 'gx#runtime-binding::t)
             (gx#core-quote-syntax__0 _id9846_)
             (if (not _bind9849_)

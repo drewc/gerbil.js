@@ -1,6 +1,7 @@
 (declare (block) (standard-bindings) (extended-bindings))
+;; (declare (not inline) (debug))
 (begin
-  (declare (not safe))
+  ;; (declare (not safe))
   (define gx#&AST-e (make-struct-field-unchecked-accessor AST::t '0))
   (define gx#&AST-source (make-struct-field-unchecked-accessor AST::t '1))
   (define gx#identifier-wrap::t
@@ -521,7 +522,9 @@
                 gx#genident
                 _g6312_))))))
   (define gx#gentemps
-    (lambda (_stx-lst5877_) (gx#stx-map1 gx#genident _stx-lst5877_)))
+    (lambda (_stx-lst5877_)
+      ;; (displayln "In Gentemps")
+      (gx#stx-map1 gx#genident _stx-lst5877_)))
   (define gx#syntax->list (lambda (_stx5875_) (gx#stx-map1 values _stx5875_)))
   (define gx#stx-car
     (lambda (_stx5872_) (declare (safe)) (car (gx#syntax-e _stx5872_))))

@@ -9,9 +9,9 @@ This is the attempt.
 
 Right now the "easy" way is simply to clone the repo and run ~./bin/build.sh~ in it.
 
-
 #+begin_src bash :session gx-get-started
   cd /tmp
+  rm -rf ./gerbil.js
   git clone git@github.com:drewc/gerbil.js.git
   cd gerbil.js
   ./bin/build.sh

@@ -1,6 +1,11 @@
-(declare (block) (standard-bindings) (extended-bindings))
+(declare (block) (standard-bindings) (extended-bindings)
+          ;; (debug )
+          ;; (debug-location)
+          ;; (not debug-source)
+         )
+
 (begin
-  (declare (not safe))
+  ;; (declare (not safe))
   (define gx#current-expander-context (make-parameter '#f))
   (define gx#current-expander-marks (make-parameter '()))
   (define gx#current-expander-phi (make-parameter '0))
@@ -1406,26 +1411,34 @@
                 _g9356_))))))
   (define gx#core-apply-expander__%
     (lambda (_K8237_ _stx8238_ _method8239_)
-      (if (procedure? _K8237_)
-          (let ((_$e8241_ (gx#stx-source _stx8238_)))
-            (if _$e8241_
-                ((lambda (_g82438245_)
-                   (gx#stx-wrap-source (_K8237_ _stx8238_) _g82438245_))
-                 _$e8241_)
-                (_K8237_ _stx8238_)))
-          (let ((_$e8248_ (bound-method-ref _K8237_ _method8239_)))
-            (if _$e8248_
-                ((lambda (_g82508252_)
-                   (gx#core-apply-expander__%
-                    _g82508252_
+      ;; (declare (not inline) (debug))
+      (with-exception-catcher
+       (lambda (e)
+         (displayln "core apply expander ERROR:" _K8237_
+                    " \n\t on " (&AST->datum _stx8238_)
+                    " \n\t with method" _method8239_ "\n\n")
+         (raise e))
+       (lambda ()
+         (if (procedure? _K8237_)
+             (let ((_$e8241_ (gx#stx-source _stx8238_)))
+               (if _$e8241_
+                   ((lambda (_g82438245_)
+                      (gx#stx-wrap-source (_K8237_ _stx8238_) _g82438245_))
+                    _$e8241_)
+                   (_K8237_ _stx8238_)))
+             (let ((_$e8248_ (bound-method-ref _K8237_ _method8239_)))
+               (if _$e8248_
+                   ((lambda (_g82508252_)
+                      (gx#core-apply-expander__%
+                       _g82508252_
+                       _stx8238_
+                       _method8239_))
+                    _$e8248_)
+                   (gx#raise-syntax-error
+                    '#f
+                    '"Bad syntax"
                     _stx8238_
-                    _method8239_))
-                 _$e8248_)
-                (gx#raise-syntax-error
-                 '#f
-                 '"Bad syntax"
-                 _stx8238_
-                 _method8239_))))))
+                    _method8239_))))))))
   (define gx#core-apply-expander__0
     (lambda (_K8258_ _stx8259_)
       (let ((_method8261_ 'apply-macro-expander))

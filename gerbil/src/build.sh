@@ -142,7 +142,8 @@ stage1 () {
   GERBIL_HOME="${GERBIL_STAGE0}" # required by gxi
   GERBIL_TARGET="${GERBIL_BASE}" # required by build1.ss
   export GERBIL_HOME GERBIL_TARGET
-  "${GERBIL_STAGE0}/bin/gxi" "${GERBIL_BUILD}/build1.ss" || die
+  #"${GERBIL_STAGE0}/bin/gxi" "${GERBIL_BUILD}/build1.ss" || die
+  "${GERBIL_STAGE0}/bin/gxi" "${GERBIL_BUILD}/build2.ss" || die
 
   ## finalize build
   feedback_mid "finalizing build ${final:+${final_string}}"

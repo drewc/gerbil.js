@@ -65,18 +65,71 @@ build_bootstrap() {
     cd $_MyPath;
 }
 
-build_bootstrap
+# build_bootstrap
 
 build_first_stage() {
-    cd $GERBIL_SRC/src/ && ./build.sh stage1 final
+    cd $GERBIL_SRC/src/ && ./build.sh stage1
+    ${2:-}
     cd $_MyPath;
 }
 
-build_first_stage
+# build_first_stage
 
 build_stdlib() {
     cd $GERBIL_SRC/src/ && ./build.sh stdlib
     cd $_MyPath;
 }
 
-build_stdlib
+# build_stdlib
+
+build_gerbil() {
+    build_bootstrap
+    build_first_stage
+    build_stdlib
+}
+
+if [ "$#" -eq 0 ]; then
+  build_gerbil
+else
+  case "$1" in
+       "sanity-check")
+         sanity_check || die
+         ;;
+       "gxi")
+         build_gxi || die
+         ;;
+       "bootstrap")
+         build_bootstrap || die
+         ;;
+       "stage1")
+         build_first_stage "${2:-}" || die
+         ;;
+       "stdlib")
+         build_stdlib || die
+         ;;
+       "lang")
+         build_lang || die
+         ;;
+       "r7rs-large")
+         build_r7rs_large || die
+         ;;
+       "tools")
+         build_tools || die
+         ;;
+       "tags")
+         build_tags || die
+         ;;
+       "layout")
+         build_layout || die
+         ;;
+       "doc")
+         build_doc || die
+         ;;
+       *)
+         feedback_err "Unknown command."
+         feedback_err \
+           "Correct usage: ./build.sh [gxi|stage0|stage1 [final]|stdlib|lang|r7rs-large|tools|tags]"
+         die
+         ;;
+  esac
+fi
