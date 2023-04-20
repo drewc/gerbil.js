@@ -671,7 +671,7 @@ namespace: gxc
                 (with-inline-unsafe-primitives
                     [cmp count len]
                   ['let []
-                    '(declare (safe))
+                    '(declare (not safe))
                     [cmp count len]])]
             ['error errmsg count]]])))))
 
@@ -682,7 +682,7 @@ namespace: gxc
   ;; see gambit#422
   (with-inline-unsafe-primitives (generate-inline)
     ['let []
-         '(declare (safe))
+         '(declare (not safe))
          (generate-inline)]))
 
 (def (generate-runtime-values-ref var i rest)
@@ -694,7 +694,7 @@ namespace: gxc
   ;; see gambit#422
   (with-inline-unsafe-primitives (generate-inline)
     ['let []
-      '(declare (safe))
+      '(declare (not safe))
       (generate-inline)]))
 
 (def (generate-runtime-values->list var i)
@@ -703,19 +703,19 @@ namespace: gxc
     (with-inline-unsafe-primitives
         ['if ['##values? var] ['_gx#vector->list var] ['list var]]
       ['let []
-        '(declare (safe))
+        '(declare (not safe))
         ['if ['##values? var] ['_gx#vector->list var] ['list var]]]))
    ((fx= i 1)
     (with-inline-unsafe-primitives
         ['if ['##values? var] ['##cdr ['_gx#vector->list var]] '(quote ())]
       ['let []
-        '(declare (safe))
+        '(declare (not safe))
         ['if ['##values? var] ['##cdr ['_gx#vector->list var]] '(quote ())]]))
    (else
     (with-inline-unsafe-primitives
         ['##list-tail ['_gx#vector->list var] i]
       ['let []
-        '(declare (safe))
+        '(declare (not safe))
         ['##list-tail ['_gx#vector->list var] i]]))))
 
 (def (generate-runtime-lambda% stx)
@@ -780,13 +780,13 @@ namespace: gxc
               (with-inline-unsafe-primitives
                   ['##fx= arglen len]
                 ['let []
-                  '(declare (safe))
+                  '(declare (not safe))
                   ['##fx= arglen len]]))
              ((> len 0)
               (with-inline-unsafe-primitives
                   ['##fx>= arglen len]
                 ['let []
-                  '(declare (safe))
+                  '(declare (not safe))
                   ['##fx>= arglen len]]))
              (else #t)))
            (dispatch
@@ -806,7 +806,7 @@ namespace: gxc
                  (with-inline-unsafe-primitives
                      ['##length args]
                    ['let []
-                     '(declare (safe))
+                     '(declare (not safe))
                      ['##length args]])]]
            ['cond
             (map (cut generate1 args arglen <> <>) #'(hd ...) #'(body ...)) ...
@@ -1068,7 +1068,7 @@ namespace: gxc
             (if (string-prefix? "##" (symbol->string f))
               (with-primitive-bind+args (bind args (reverse #'rands))
                 ['let [bind ...]
-                  '(declare (safe))
+                  '(declare (not safe))
                   (cons f args)])
               (compile-call #'rator #'rands))))
          (_ (compile-call #'rator #'rands)))))))
@@ -1112,7 +1112,7 @@ namespace: gxc
          ['##structure-instance-of? (compile-e #'obj) (compile-e #'type-id)]
        (with-primitive-bind+args (bind args [#'type-id #'obj])
          ['let [bind ...]
-           '(declare (safe))
+           '(declare (not safe))
            ;; (##structure-instance-of? obj type-id)
            ['##structure-instance-of? args ...]])))))
 
@@ -1124,7 +1124,7 @@ namespace: gxc
          ['##structure-direct-instance-of? (compile-e #'obj) (compile-e #'type-id)]
        (with-primitive-bind+args (bind args [#'type-id #'obj])
          ['let [bind ...]
-           '(declare (safe))
+           '(declare (not safe))
            ;; (##structure-direct-instance-of? obj type-id)
            ['##structure-direct-instance-of? args ...]])))))
 
@@ -1140,7 +1140,7 @@ namespace: gxc
                            '(quote #f)]
        (with-primitive-bind+args (bind args [#'type #'off #'obj])
          ['let [bind ...]
-           '(declare (safe))
+           '(declare (not safe))
            ;; (##structure-ref obj off type where)
            ['##structure-ref args ... '(quote #f)]]))
      ['##structure-ref (compile-e #'obj)
@@ -1162,7 +1162,7 @@ namespace: gxc
                             '(quote #f)]
        (with-primitive-bind+args (bind args [#'type #'off #'val #'obj])
          ['let [bind ...]
-           '(declare (safe))
+           '(declare (not safe))
            ;; (##structure-set! obj val off type where)
            ['##structure-set! args ... '(quote #f)]]))
      ['##structure-set! (compile-e #'obj)
@@ -1184,7 +1184,7 @@ namespace: gxc
                                   '(quote #f)]
        (with-primitive-bind+args (bind args [#'type #'off #'obj])
          ['let [bind ...]
-           '(declare (safe))
+           '(declare (not safe))
            ;; (##direct-structure-ref obj off type where)
            ['##direct-structure-ref args ... '(quote #f)]]))
      ['##direct-structure-ref (compile-e #'obj)
@@ -1206,7 +1206,7 @@ namespace: gxc
                                    '(quote #f)]
        (with-primitive-bind+args (bind args [#'type #'off #'val #'obj])
          ['let [bind ...]
-           '(declare (safe))
+           '(declare (not safe))
            ;; (##direct-structure-set! obj val off type where)
            ['##direct-structure-set! args ... '(quote #f)]]))
      ['##direct-structure-set! (compile-e #'obj)
@@ -1227,7 +1227,7 @@ namespace: gxc
                                      '(quote #f)]
        (with-primitive-bind+args (bind args [#'type #'off #'obj])
          ['let [bind ...]
-           '(declare (safe))
+           '(declare (not safe))
            ;; (##unchecked-structure-ref obj off type where)
            ['##unchecked-structure-ref args ... '(quote #f)]])))))
 
@@ -1243,7 +1243,7 @@ namespace: gxc
                                       '(quote #f)]
        (with-primitive-bind+args (bind args [#'type #'off #'val #'obj])
          ['let [bind ...]
-           '(declare (safe))
+           '(declare (not safe))
            ;; (##unchecked-structure-set! obj val off type where)
            ['##unchecked-structure-set! args ... '(quote #f)]])))))
 
